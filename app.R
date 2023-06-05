@@ -4,14 +4,16 @@ library(DT)
 library(sf)
 library(viridis)
 library(htmltools)
+library(htmlwidgets)
 library(bslib)
 library(thematic)
 library(shinythemes)
+library(anytime)
 #thematic::thematic_shiny(font = "auto")
 
 #theme <- bslib::bs_theme(version = 5, bootswatch = "darkly")
 
-click <- reactiveValues(clickedState = NULL)
+#click <- reactiveValues(clickedState = NULL)
 
 ui <- fluidPage(
   #theme = bslib::bs_theme(version = 5, bootswatch = "slate"),
@@ -24,7 +26,7 @@ ui <- fluidPage(
       bs_add_rules("h1 { text-transform: uppercase; letter-spacing: 1px;}"),
     sass::as_sass("table.dataTable tbody tr.active td {
              color: black !important;
-             box-shadow: inset 0 0 0 9999px white !important;}"
+             box-shadow: inset 0 0 0 9999px orange !important;}"
     )),
   # tags$head(
   #   tags$style(HTML("
@@ -55,7 +57,10 @@ ui <- fluidPage(
              sidebarLayout(
                sidebarPanel(
                  plotlyOutput("barChart2"),
-                 plotlyOutput("plotlyOutput2")
+                 div(
+                   style = "height: 500px; overflow-y: scroll; overflow-x: scroll;",
+                   plotlyOutput("plotlyOutput2")
+                 )
                ),
                mainPanel(
                  leafletOutput("map2"),
@@ -70,6 +75,7 @@ ui <- fluidPage(
 server <- function(input, output) {
   bs_themer()
   
+  click <- reactiveValues(clickedState = NULL)
   # Choropleth map for banned school books
   output$map1 <- renderLeaflet({
     leaflet(df_sf2) %>%
@@ -171,14 +177,19 @@ server <- function(input, output) {
   
   # Reset datatable when the "Reset" button is clicked
   observeEvent(input$resetButton1, {
+    click$clickedState <- NULL
     filteredData1(originalData1())
+  })
+  
+  observeEvent(input$map1_shape_click$id,{
+    click$clickedState <- input$map1_shape_click$id
   })
   
   # Render the sidebar with the plotly bar chart
   output$barChart <- renderPlotly({
-    clickedState <- input$map1_shape_click$id
+    #clickedState <- input$map1_shape_click$id
     
-    if (is.null(clickedState)) {
+    if (is.null(click$clickedState)) {
       # Count the occurrences of each state
       counts <- table(schools$State)
       
@@ -198,12 +209,12 @@ server <- function(input, output) {
         #line = list(color = '#000000', width = 1)),
         #textfont = list(color = '#FFFFFF')) %>%
         layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
-          yaxis = list(title = "State", categoryorder = "total ascending"),
-          xaxis = list(title = "Count"),
-          showlegend = FALSE
+               yaxis = list(title = "State", categoryorder = "total ascending"),
+               xaxis = list(title = "Count"),
+               showlegend = FALSE
         )
-    } else if (!is.null(clickedState)) {
-      filteredData <- schools[schools$State %in% clickedState, ]
+    } else if (!is.null(click$clickedState)) {
+      filteredData <- schools[schools$State %in% click$clickedState, ]
       
       # Calculate the count for each district
       counts <- table(filteredData$District)
@@ -233,21 +244,21 @@ server <- function(input, output) {
         #line = list(color = '#000000', width = 1)),
         #textfont = list(color = '#FFFFFF')) %>%
         layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
-          xaxis = list(title = "Count"),
-          yaxis = list(title = "", categoryorder = "total ascending"),
-          title = paste("Banned Books by",stateName, "District"),
-          
-          margin = mrg,
-          showlegend = FALSE
+               xaxis = list(title = "Count"),
+               yaxis = list(title = "", categoryorder = "total ascending"),
+               title = paste("Banned Books by",stateName, "District"),
+               
+               margin = mrg,
+               showlegend = FALSE
         )
     }
   })
   
   # Render the sidebar with the plotly top ten topics chart
   output$plotlyOutput1 <- renderPlotly({
-    clickedState <- input$map1_shape_click$id
+    #clickedState <- input$map1_shape_click$id
     
-    if (is.null(clickedState)) {
+    if (is.null(click$clickedState)) {
       
       top_ten_topics <- table(schools$Topic)
       
@@ -266,13 +277,13 @@ server <- function(input, output) {
         #line = list(color = '#000000', width = 1)),
         #textfont = list(color = '#FFFFFF')) %>%
         layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
-          xaxis = list(title = "Count"),
-          yaxis = list(title = "Topic",categoryorder = "total ascending"),
-          showlegend = FALSE
+               xaxis = list(title = "Count"),
+               yaxis = list(title = "Topic",categoryorder = "total ascending"),
+               showlegend = FALSE
         )
     } else {
       # sort by click
-      filteredData <- schools[schools$State == clickedState, ]
+      filteredData <- schools[schools$State == click$clickedState, ]
       top_ten_topics <- table(filteredData$Topic)
       
       
@@ -284,13 +295,13 @@ server <- function(input, output) {
       top_ten2 <- head(counts_df2, 10)
       
       plot_ly(data = top_ten2, x = ~Count, y = ~Topic, type = "bar") %>% 
-              #marker = list(color = '#000000', 
-              #line = list(color = '#000000', width = 1)),
-              #textfont = list(color = '#FFFFFF')) %>%
+        #marker = list(color = '#000000', 
+        #line = list(color = '#000000', width = 1)),
+        #textfont = list(color = '#FFFFFF')) %>%
         layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
-          xaxis = list(title = "Count"),
-          yaxis = list(title = "Topic", categoryorder = "total ascending"),
-          showlegend = FALSE
+               xaxis = list(title = "Count"),
+               yaxis = list(title = "Topic", categoryorder = "total ascending"),
+               showlegend = FALSE
         )
     }
   })
@@ -339,7 +350,7 @@ server <- function(input, output) {
   observe({
     originalData2(p[, c(
       "state_arc", "State_Count", "publication", "topic_description",
-      "author", "Topic", "date", "reason", "publication_date",
+      "author", "Name", "date", "reason", "publication_date",
       "publisher", "categories"
     )])
   })
@@ -355,7 +366,7 @@ server <- function(input, output) {
       # Filter datatable based on selected state in the map
       filteredData(originalData2()[originalData2()$state_arc %in% clickedState, c(
         "state_arc", "State_Count", "publication", "topic_description",
-        "author", "Topic", "date", "reason", "publication_date",
+        "author", "Name", "date", "reason", "publication_date",
         "publisher", "categories"
       )])
     }
@@ -399,17 +410,23 @@ server <- function(input, output) {
   });"
       ))
   })
-  
+  #values <- reactiveValues(chart = NULL)
   # Reset datatable when the "Reset" button is clicked
   observeEvent(input$resetButton2, {
+    click$clickedState <- NULL
     filteredData(originalData2())
+    #output$barChart2 <- renderPlotly({m})
+  })
+  
+  observeEvent(input$map2_shape_click$id,{
+    click$clickedState <- input$map2_shape_click$id
   })
   
   # Render the sidebar with the plotly bar chart
   output$barChart2 <- renderPlotly({
-    clickedState <- input$map2_shape_click$id
+    #click$clickedState <- input$map2_shape_click$id
     
-    if (is.null(clickedState)) {
+    if (is.null(click$clickedState)) {
       # Show state_counts over the entire dataset
       counts <- table(p$state_arc, format(as.Date(p$date), "%Y"))
       counts_df <- as.data.frame(counts)
@@ -417,13 +434,15 @@ server <- function(input, output) {
       
       if (nrow(state_counts) == 0) {
         # No dates available for any state
-        plot_ly(x = NA, y = NA) %>%
+        plot_ly(x = NA, y = NA) %>% hide_colorbar() %>%
           layout(
             xaxis = list(title = ""),
             yaxis = list(title = ""),
-            showlegend = FALSE,
+            showlegend = TRUE,
             annotations = list(
-              text = "No dates available",
+              text = "No data available",
+              xref = "paper",  # Set the x-coordinate reference to the plot's coordinate system
+              yref = "paper",
               x = 0.5,
               y = 0.5,
               showarrow = FALSE,
@@ -431,28 +450,30 @@ server <- function(input, output) {
             )
           )
       } else {
+        
+        total_counts <- aggregate(Freq ~ Var2, data = state_counts, FUN = sum)
         # Create the bar chart using plot_ly
-        plot_ly(data = state_counts, x = ~Var2, y = ~Freq, type = "bar") %>%
+        plot_ly(data = total_counts, x = ~Var2, y = ~Freq, type = "bar") %>%
           #marker = list(color = '#000000', 
           #line = list(color = '#000000', width = 1)),
           #textfont = list(color = '#FFFFFF')) %>%
           layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
-            xaxis = list(title = "Year"),
-            yaxis = list(title = "Count"),
-            showlegend = FALSE
-          )
+                 xaxis = list(title = "Year"),
+                 yaxis = list(title = "Count"),
+                 showlegend = FALSE
+          ) 
       }
     } else {
       #clickedState <- click$clickedState
       # Filtered data for the selected state
-      filteredData <- p[p$state_arc %in% clickedState, ]
+      filteredData <- p[p$state_arc %in% click$clickedState, ]
       
       # Extract year from the "date" column
-      filteredData$Year <- format(as.Date(filteredData$date), "%Y")
+      filteredData$Year <- format(as.Date(filteredData$date, format = "%Y-%m-%d"), "%Y")
       
       # Check if the state is Iowa and modify the date format
-      if (clickedState == "IA") {
-        filteredData$Year <- paste0("20", substr(filteredData$Year, nchar(filteredData$Year) - 1, nchar(filteredData$Year)))
+      if (click$clickedState == "IA") {
+        filteredData$Year <- substr(filteredData$date, 1, 4)
       }
       
       # Count the occurrences of each year per state
@@ -462,25 +483,27 @@ server <- function(input, output) {
       counts_df <- as.data.frame(counts)
       
       # Filter the data frame for the selected state
-      state_counts <- subset(counts_df, Var1 == clickedState)
+      state_counts <- subset(counts_df, Var1 == click$clickedState)
       
       if (nrow(state_counts) == 0) {
         # No dates available for the selected state
-        plot_ly(x = NA, y = NA) %>%
+        plot_ly(x = NA, y = NA) %>% hide_colorbar() %>% 
           #marker = list(color = '#000000', 
           #line = list(color = '#000000', width = 1)),
           #textfont = list(color = '#FFFFFF')) %>%
           layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
-            xaxis = list(title = ""),
-            yaxis = list(title = ""),
-            showlegend = FALSE,
-            annotations = list(
-              text = "No dates available",
-              x = 0.5,
-              y = 0.5,
-              showarrow = FALSE,
-              font = list(size = 20)
-            )
+                 xaxis = list(title = ""),
+                 yaxis = list(title = ""),
+                 showlegend = TRUE,
+                 annotations = list(
+                   text = "No data available",
+                   xref = "paper",  # Set the x-coordinate reference to the plot's coordinate system
+                   yref = "paper",
+                   x = 0.5,
+                   y = 0.5,
+                   showarrow = FALSE,
+                   font = list(size = 20)
+                 )
           )
       } else {
         # Create the bar chart using plot_ly
@@ -489,21 +512,21 @@ server <- function(input, output) {
           #line = list(color = '#000000', width = 1)),
           #textfont = list(color = '#FFFFFF')) %>%
           layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
-            xaxis = list(title = "Year"),
-            yaxis = list(title = "Count"),
-            showlegend = FALSE
-          )
+                 xaxis = list(title = "Year"),
+                 yaxis = list(title = "Count"),
+                 showlegend = FALSE
+          ) 
       }
     }
   })
   
   # Render the sidebar with the plotly top ten topics chart
   output$plotlyOutput2 <- renderPlotly({
-    clickedState <- input$map2_shape_click$id
+    #clickedState <- input$map2_shape_click$id
     
-    if (is.null(clickedState)) {
-      
-      top_ten_topics <- table(p$Topic)
+    if (is.null(click$clickedState)) {
+      #if (is.null(values$chart)) {  
+      top_ten_topics <- table(p$Name)
       
       # Convert to df
       counts_df2 <- as.data.frame(top_ten_topics, stringsAsFactors = FALSE)
@@ -512,42 +535,47 @@ server <- function(input, output) {
       # Sort in descending order
       counts_df2 <- counts_df2[order(-counts_df2$Count), ]
       
-      # Select top ten topics
-      top_ten2 <- head(counts_df2, 10)
-      
-      plot_ly(data = top_ten2, x = ~Count, y = ~Topic, type = "bar") %>%
-        #marker = list(color = '#000000', 
-        #line = list(color = '#000000', width = 1)),
-        #textfont = list(color = '#FFFFFF')) %>%
-        layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
-               xaxis = list(title = "Count"),
-               yaxis = list(title = "Topic",categoryorder = "total ascending"),
-               showlegend = FALSE
+      plot_ly(data = counts_df2, x = ~Count, y = ~Topic, type = "bar") %>%
+        layout(
+          paper_bgcolor = '#7a8288',
+          plot_bgcolor = '#7a8288',
+          xaxis = list(title = "Count"),
+          yaxis = list(title = "Topic", categoryorder = "total ascending"),
+          showlegend = FALSE,
+          height = 3600,  # Set a fixed height
+          margin = list(l = 50, r = 50, b = 100, t = 50),  # Adjust margins for better display
+          autosize = FALSE,  # Disable auto-sizing
+          config = list(scrollZoom = FALSE)  # Disable auto-sizing
         )
+      #}
+      #values$chart
+      
     } else {
       # sort by click
-      filteredData <- p[p$state_arc == clickedState, ]
-      top_ten_topics <- table(filteredData$Topic)
-      
+      filteredData <- p[p$state_arc == click$clickedState, ]
+      top_ten_topics <- table(filteredData$Name)
       
       counts_df2 <- as.data.frame(top_ten_topics, stringsAsFactors = FALSE)
       colnames(counts_df2) <- c("Topic", "Count")
       
       counts_df2 <- counts_df2[order(-counts_df2$Count), ]
       
-      top_ten2 <- head(counts_df2, 10)
-      
-      plot_ly(data = top_ten2, x = ~Count, y = ~Topic, type = "bar") %>% 
-        #marker = list(color = '#000000', 
-        #line = list(color = '#000000', width = 1)),
-        #textfont = list(color = '#FFFFFF')) %>%
-        layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
-               xaxis = list(title = "Count"),
-               yaxis = list(title = "Topic", categoryorder = "total ascending"),
-               showlegend = FALSE
+      plot_ly(data = counts_df2, x = ~Count, y = ~Topic, type = "bar") %>%
+        layout(
+          paper_bgcolor = '#7a8288',
+          plot_bgcolor = '#7a8288',
+          xaxis = list(title = "Count"),
+          yaxis = list(title = "Topic", categoryorder = "total ascending"),
+          showlegend = FALSE,
+          height = 3600,  # Set a fixed height
+          margin = list(l = 50, r = 50, b = 100, t = 50),  # Adjust margins for better display
+          autosize = FALSE,  # Disable auto-sizing
+          config = list(scrollZoom = FALSE)  # Disable auto-sizing
         )
+      
     }
   })
+  
 }
 
 shinyApp(ui, server)
