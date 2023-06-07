@@ -1,4 +1,6 @@
 library(shiny)
+library(dplyr)
+library(shinyjs)
 library(leaflet)
 library(DT)
 library(sf)
@@ -8,7 +10,9 @@ library(htmlwidgets)
 library(bslib)
 library(thematic)
 library(shinythemes)
-library(anytime)
+library(shinyglide)
+#library(anytime)
+#library(shinymaterial)
 #thematic::thematic_shiny(font = "auto")
 
 #theme <- bslib::bs_theme(version = 5, bootswatch = "darkly")
@@ -27,7 +31,8 @@ ui <- fluidPage(
     sass::as_sass("table.dataTable tbody tr.active td {
              color: black !important;
              box-shadow: inset 0 0 0 9999px orange !important;}"
-    )),
+    )
+  ),
   # tags$head(
   #   tags$style(HTML("
   #     /* Customize the height of datatable rows */
@@ -50,6 +55,7 @@ ui <- fluidPage(
                mainPanel(
                  leafletOutput("map1"),
                  actionButton("resetButton1", "Reset"),
+                 actionButton("reopenButton", "Slideshow"),
                  DT::dataTableOutput("table1")
                )
              )),
@@ -68,12 +74,160 @@ ui <- fluidPage(
                  DT::dataTableOutput("table2")
                )
              ))
-  )
-)
-
+  ),
+  
+  myModal <- modalDialog(
+    id = "slideshowModal",
+    title = htmlOutput("title"),
+    footer = NULL,
+    size = "xl",
+    easyClose = TRUE,
+    fade = TRUE,
+    glide(
+      id = "myglide",
+      screen(
+        column(
+          width = 12,
+          align = "center",
+          div(style = "height: 100px;"),
+          tags$img(src = "BANNED_BOOKS.jpg", style = "max-width: 100%; max-height: 100%;"),
+          div(style = "height: 50px;"),
+          tags$span(
+            HTML("This project seeks to raise awareness about book banning in the US. It also specifically 
+            focuses on what type of content is being banned and where from a local level by using a form of 
+                 unsupervised machine learning (topic modeling)."),
+            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
+          )
+        )
+      ),
+      screen(
+        column(
+          width = 12,
+          align = "center",
+          tags$img(src = "ban_timeline.jpg", style = "max-width: 100%; max-height: 100%;"),
+          tags$span(
+            HTML("Between July 2021 and Dec. 2022, there were a total of:<br>",
+                 "- 4009 individual book bans<br>",
+                 "- 2261 unique titles<br>",
+                 "- In 190 school districts<br>",
+                 "- In 37 states"),
+            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
+          )
+        )
+      ),
+      screen(
+        column(
+          width = 12,
+          align = "center",
+          div(style = "height: 100px;"),
+          tags$iframe(src = "prison_topics_over_time.html", width = "80%", height = "500px", style = "margin-left: 50px;"),
+          tags$span(
+            HTML("This is the third slide"),
+            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
+          )
+        )
+      ),
+      screen(
+        column(
+          width = 12,
+          align = "center",
+          plotlyOutput("plot"),
+          div(style = "height: 50px;"),
+          plotlyOutput("plot2"),
+          tags$span(
+            HTML("This is the slide with the custom plot"),
+            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
+          )
+        )
+      )
+    )
+  ))
 
 server <- function(input, output) {
   bs_themer()
+  
+  # Reset clickedState when the corresponding tab is not active
+  observeEvent(input$nav, {
+    if (input$nav != "Banned Books in US Schools") {
+      click$clickedState <- NULL
+    }
+  })
+  
+  observeEvent(input$nav, {
+    if (input$nav != "Banned Books in US Prisons") {
+      click$clickedState <- NULL
+    }
+  })
+  
+  # Show info modal with button click
+  observeEvent(input$reopenButton, {
+    showModal(myModal)
+  })
+  
+  output$plot <- renderPlotly({
+    # Create a tally of schools$District
+    district_counts <- table(schools$Title)
+    district_counts <- sort(district_counts, decreasing = TRUE)
+    
+    # Select the top ten districts by count
+    top_ten <- head(district_counts, 10)
+    
+    # Create a horizontal bar chart using plot_ly
+    plot_ly(
+      tibble(x = top_ten, y = names(top_ten)),
+      x = ~x,
+      y = ~y,
+      type = "bar",
+      orientation = "h", marker = list(color = ten_pal, line = list(color = '#8CDED9FF', width = 1))) %>% 
+      layout(paper_bgcolor='#212946', plot_bgcolor ='#212946', font = list(color = '#FFFFFF'),
+             yaxis = list(title = "State", categoryorder = "total ascending"),
+             xaxis = list(title = "Count")
+    ) 
+  })
+  
+  output$plot2 <- renderPlotly({
+    # Get the top ten authors by count
+    top_authors <- schools$Author %>%
+      table() %>%
+      sort(decreasing = TRUE) %>%
+      head(10) %>%
+      names()
+    
+    # Filter the dataframe to include only the top authors
+    filtered_schools <- schools %>%
+      filter(Author %in% top_authors)
+    
+    # Calculate the total number of mentions and unique titles per author
+    author_counts <- filtered_schools %>%
+      group_by(Author) %>%
+      summarise(Total_Mentions = n(),
+                Unique_Titles = n_distinct(Title)) %>%
+      arrange(desc(Total_Mentions))
+    
+    # Custom margin for title
+    mrg <- list(l = 50, r = 50,
+                b = 50, t = 50)
+    
+    # Create the grouped bar chart using Plotly
+    plot_ly(author_counts, x = ~reorder(Author, -Total_Mentions), y = ~Total_Mentions) %>%
+      add_trace(name = "Total Bans", type = "bar", 
+                marker = list(color = "#8CDED9FF", 
+                              line = list(color = '#08F7FE', 
+                                          width = 1))) %>%
+      add_trace(y = ~Unique_Titles, name = "Unique Titles", type = "bar", 
+                marker = list(color = "#FFA500", 
+                              line = list(color = '#FFC900', 
+                                          width = 1))) %>%
+      layout(barmode = "group", font = list(color = '#FFFFFF'),
+             xaxis = list(title = "Author", tickangle = 0, tickfont = list(size = 11)),
+             yaxis = list(title = "Count"),
+             paper_bgcolor = "#212946",
+             plot_bgcolor = "#212946",
+             margin = mrg,
+             hovermode = "x",
+             title = "Top Ten Authors by Individual Bans and Unique Titles")
+  })
+  
   
   click <- reactiveValues(clickedState = NULL)
   # Choropleth map for banned school books
@@ -159,7 +313,7 @@ server <- function(input, output) {
       callback = JS(" 
   table.column(6).nodes().to$().css({cursor: 'pointer'});
   var format = function(d) {
-    return '<div style=\"background-color:black; padding: .5em;\"> Topic: ' +
+    return '<div style=\"background-color:black; padding: .5em;\"> Description: ' +
             d[6] + '</div>';
   };
   table.on('click', 'td.details-control', function() {
@@ -204,9 +358,9 @@ server <- function(input, output) {
       top_ten <- head(counts_df, 10)
       
       # Create the horizontal bar chart using plot_ly
-      plot_ly(data = top_ten, y = ~State, x = ~Count, type = "bar", orientation = "h") %>%
-        #marker = list(color = '#000000', 
-        #line = list(color = '#000000', width = 1)),
+      plot_ly(data = top_ten, y = ~State, x = ~Count, type = "bar", orientation = "h", #%>% 
+        marker = list(color = '#143E5C')) %>%  
+        #line = list(color = '#8CDED9FF', width = 1))) %>%
         #textfont = list(color = '#FFFFFF')) %>%
         layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
                yaxis = list(title = "State", categoryorder = "total ascending"),
@@ -395,7 +549,7 @@ server <- function(input, output) {
       callback = JS("
   table.column(4).nodes().to$().css({cursor: 'pointer'});
   var format = function(d) {
-    return '<div style=\"background-color:black; padding: .5em;\"> Topic: ' +
+    return '<div style=\"background-color:black; padding: .5em;\"> Description: ' +
             d[5] + '</div>';
   };
   table.on('click', 'td.details-control', function() {
@@ -428,9 +582,9 @@ server <- function(input, output) {
     
     if (is.null(click$clickedState)) {
       # Show state_counts over the entire dataset
-      counts <- table(p$state_arc, format(as.Date(p$date), "%Y"))
-      counts_df <- as.data.frame(counts)
-      state_counts <- counts_df[counts_df$Var1 %in% unique(p$state_arc), ]
+      counts3 <- table(p$state_arc, format(as.Date(p$date), "%Y"))
+      counts_df3 <- as.data.frame(counts3)
+      state_counts <- counts_df3[counts_df3$Var1 %in% unique(p$state_arc), ]
       
       if (nrow(state_counts) == 0) {
         # No dates available for any state
@@ -477,13 +631,13 @@ server <- function(input, output) {
       }
       
       # Count the occurrences of each year per state
-      counts <- table(filteredData$state_arc, filteredData$Year)
+      counts3 <- table(filteredData$state_arc, filteredData$Year)
       
       # Convert counts table to a data frame
-      counts_df <- as.data.frame(counts)
+      counts_df3 <- as.data.frame(counts3)
       
       # Filter the data frame for the selected state
-      state_counts <- subset(counts_df, Var1 == click$clickedState)
+      state_counts <- subset(counts_df3, Var1 == click$clickedState)
       
       if (nrow(state_counts) == 0) {
         # No dates available for the selected state
@@ -529,13 +683,13 @@ server <- function(input, output) {
       top_ten_topics <- table(p$Name)
       
       # Convert to df
-      counts_df2 <- as.data.frame(top_ten_topics, stringsAsFactors = FALSE)
-      colnames(counts_df2) <- c("Topic", "Count")
+      counts_df4 <- as.data.frame(top_ten_topics, stringsAsFactors = FALSE)
+      colnames(counts_df4) <- c("Topic", "Count")
       
       # Sort in descending order
-      counts_df2 <- counts_df2[order(-counts_df2$Count), ]
+      counts_df4 <- counts_df4[order(-counts_df4$Count), ]
       
-      plot_ly(data = counts_df2, x = ~Count, y = ~Topic, type = "bar") %>%
+      plot_ly(data = counts_df4, x = ~Count, y = ~Topic, type = "bar") %>%
         layout(
           paper_bgcolor = '#7a8288',
           plot_bgcolor = '#7a8288',
@@ -555,12 +709,12 @@ server <- function(input, output) {
       filteredData <- p[p$state_arc == click$clickedState, ]
       top_ten_topics <- table(filteredData$Name)
       
-      counts_df2 <- as.data.frame(top_ten_topics, stringsAsFactors = FALSE)
-      colnames(counts_df2) <- c("Topic", "Count")
+      counts_df4 <- as.data.frame(top_ten_topics, stringsAsFactors = FALSE)
+      colnames(counts_df4) <- c("Topic", "Count")
       
-      counts_df2 <- counts_df2[order(-counts_df2$Count), ]
+      counts_df4 <- counts_df4[order(-counts_df4$Count), ]
       
-      plot_ly(data = counts_df2, x = ~Count, y = ~Topic, type = "bar") %>%
+      plot_ly(data = counts_df4, x = ~Count, y = ~Topic, type = "bar") %>%
         layout(
           paper_bgcolor = '#7a8288',
           plot_bgcolor = '#7a8288',
