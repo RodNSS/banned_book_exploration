@@ -30,7 +30,7 @@ ui <- fluidPage(
       bs_add_rules("h1 { text-transform: uppercase; letter-spacing: 1px;}"),
     sass::as_sass("table.dataTable tbody tr.active td {
              color: black !important;
-             box-shadow: inset 0 0 0 9999px orange !important;}"
+             box-shadow: inset 0 0 0 9999px #87AECC !important;}"
     )
   ),
   # tags$head(
@@ -55,7 +55,8 @@ ui <- fluidPage(
                mainPanel(
                  leafletOutput("map1"),
                  actionButton("resetButton1", "Reset"),
-                 actionButton("reopenButton", "Slideshow"),
+                 span(actionButton("reopenButton", "Slideshow"),
+                      style = "position:absolute;right:1em;"),
                  DT::dataTableOutput("table1")
                )
              )),
@@ -104,14 +105,200 @@ ui <- fluidPage(
         column(
           width = 12,
           align = "center",
-          tags$img(src = "ban_timeline.jpg", style = "max-width: 100%; max-height: 100%;"),
+          tags$img(src = "PEN.jpg", style = "max-width: 80%; max-height: 80%;"),
+          tags$h4(
+            HTML("<b>What is a school book ban and where does this data come from?</b>")
+          ),
+          tags$q(
+            "PEN America defines a school book ban as any action taken against a book based on its content and as a result of parent or community challenges, administrative decisions, or in response to direct or threatened action by lawmakers or other governmental officials, that leads to a previously accessible book being either completely removed from availability to students, or where access to a book is restricted or diminished."
+          ),
+          div(style = "height: 25px;"),
+          tags$q(
+            "PEN America records book bans through publicly available data on district or school websites, news sources, Public Records Requests, and school board minutes. The data presented here is limited. The true magnitude of book banning in the 2022-23 school year is unquestionably much higher."
+          ),
+          tags$ul(
+            tags$li(
+              tags$a(
+                href = "https://pen.org/report/banned-in-the-usa-state-laws-supercharge-book-suppression-in-schools/",
+                target = "_blank",
+                HTML("https://pen.org/report/banned-in-the-usa-state-laws-supercharge-book-suppression-in-schools/")
+              )
+            ),
+            div(style = "height: 25px;"),
+          tags$p("INDEX OF SCHOOL BOOK BANS"),
+            tags$li(
+              tags$a(
+                href = "https://pen.org/banned-book-list-2021-2022/",
+                target = "_blank",
+                HTML("https://pen.org/banned-book-list-2021-2022/")
+              )
+            ),
+            tags$li(
+              tags$a(
+                href = "https://pen.org/index-of-school-book-bans-2022/",
+                target = "_blank",
+                HTML("https://pen.org/index-of-school-book-bans-2022/")
+              )
+            )
+          )
+        )
+      ),
+      screen(
+        column(
+          width = 12,
+          align = "center",
+          div(style = "display: flex; justify-content: center; align-items: center;",
+              tags$img(src = "content1.jpg", style = "max-width: 80%; max-height: 60%;"),
+          ),
+          tags$h4(
+            HTML("<b>What type of content is being banned in schools?</b>"),
+            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
+          ),
+          div(style = "display: flex; justify-content: center; align-items: center;",
+              tags$img(src = "content2.jpg", style = "max-width: 80%; max-height: 60%;"),
+          )
+        )
+      ),
+      screen(
+        column(
+          width = 12,
+          align = "center",
+          tags$img(src = "seahorsebook.jpg", style = "max-width: 80%; max-height: 100%;"),
+          tags$h4(
+            HTML("<b>Who is behind the banning?</b>")
+          ),
+          tags$q(
+            "PEN America has identified at least 50 groups involved in pushing for book bans 
+            across the country operating at the national, state or local levels. Of those 50 
+            groups, eight have local or regional chapters that, between them, number at least 
+            300 in total;….Most of these groups (including chapters) appear to have formed 
+            since 2021 (73 percent, or 262)."
+          ),
+          div(style = "height: 25px;"),
+          tags$q(
+            "The nature of this movement is not one of isolated challenges to books by parents 
+            in different communities; rather, it is an organized effort by advocacy groups and 
+            state politicians with the ultimate aim of limiting access to certain stories, 
+            perspectives, and information."
+          ),
+          div(style = "height: 25px;"),
+          tags$q(
+            "In Williamson County, Tennessee, a challenge from a local Moms For Liberty chapter 
+            resulted in only one title banned from the curriculum, but six books were ascribed 
+            “instructional adjustments.” These six books were not banned in their entirety–and 
+            therefore are not listed in the Index–but wound up with restrictions placed on specific 
+            pages. They can read Sea Horse: The Shyest Fish in the Sea by Chris Butterworth to students, 
+            but they cannot display pages 12-13."
+          ),
+          tags$ul(
+            tags$li(
+              tags$a(
+                href = "https://pen.org/banned-in-the-usa/",
+                target = "_blank",
+                HTML("https://pen.org/banned-in-the-usa/")
+              )
+            )
+          )
+        )
+      ),
+      screen(
+        column(
+          width = 12,
+          align = "center",
+          tags$img(src = "school_bans.jpg", style = "max-width: 100%; max-height: 100%;"),
           tags$span(
             HTML("Between July 2021 and Dec. 2022, there were a total of:<br>",
                  "- 4009 individual book bans<br>",
                  "- 2261 unique titles<br>",
-                 "- In 190 school districts<br>",
-                 "- In 37 states"),
+                 "- in 190 school districts<br>",
+                 "- in 37 states"),
+            div(style = "height: 25px;"),
+            tags$span(
+              HTML("As of June 30th, 2022, the amount of districts with bans (138 school districts in 32 states) 'represented
+                   5,049 schools with a combined enrollment of nearly 4 million students.'")
+              ),
             style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
+          )
+        )
+      ),
+      screen(
+        column(
+          width = 12,
+          align = "center",
+          #plotlyOutput("plot"),
+          tags$iframe(src = "books.html", width = "100%", height = "415px"),
+          div(style = "height: 50px;"),
+          plotlyOutput("plot2"),
+          tags$span(
+            HTML("This is the slide with the custom plot"),
+            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
+          )
+        )
+      ),
+      screen(
+        column(
+          width = 12,
+          align = "center",
+          tags$img(src = "marshall.jpg", style = "max-width: 100%; max-height: 100%;"),
+          div(style = "height: 25px;"),
+          tags$span(
+            HTML("This project also takes a look at books and publications banned in US prisons.<br>",
+                 "The Marshall Project is a nonprofit, online journalism organization that focuses on 
+                 issues related to criminal justice in the United States.<br>",
+                 "Thus far, they have put together a list of 55,278 books/publications that are banned in 19 states."),
+            #style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
+          ),
+          tags$ul(
+            tags$li(
+              tags$a(
+                href = "https://www.themarshallproject.org/2022/12/21/prison-banned-books-list-find-your-state",
+                target = "_blank",
+                HTML("https://www.themarshallproject.org/2022/12/21/prison-banned-books-list-find-your-state")
+              )
+            ),
+            div(style = "height: 25px;"),
+            tags$p("DATA SOURCE:"),
+            tags$li(
+              tags$a(
+                href = "https://observablehq.com/@themarshallproject/prison-banned-books",
+                target = "_blank",
+                HTML("https://observablehq.com/@themarshallproject/prison-banned-books")
+              )
+            )
+          )
+        )
+      ),
+      screen(
+        column(
+          width = 12,
+          align = "center",
+          tags$img(src = "bertopic.jpg", style = "max-width: 100%; max-height: 100%;"),
+          tags$ul(
+            tags$li(
+              tags$a(
+                href = "https://maartengr.github.io/BERTopic/index.html",
+                target = "_blank",
+                HTML("https://maartengr.github.io/BERTopic/index.html")
+              )
+            ),
+            div(style = "height: 25px;"),
+            tags$span(
+              HTML("Steps Taken:<br>",
+                   "- Grabbed the individual book descriptions from the Google Books API<br>",
+                   "- Fed the descriptions into BERTopic and extracted topics from them<br>",
+                   "- Used the generated topics to gain insight by visualizing the geographic distribution of content banning")
+            )
+          )
+        )
+      ),
+      
+      screen(
+        column(
+          width = 12,
+          align = "center",
+          tags$img(src = "words.jpg", style = "max-width: 100%; max-height: 100%;"),
+          tags$span(
+            HTML("Top Banned Topics in Prison")
           )
         )
       ),
@@ -126,22 +313,10 @@ ui <- fluidPage(
             style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
           )
         )
-      ),
-      screen(
-        column(
-          width = 12,
-          align = "center",
-          plotlyOutput("plot"),
-          div(style = "height: 50px;"),
-          plotlyOutput("plot2"),
-          tags$span(
-            HTML("This is the slide with the custom plot"),
-            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
-          )
-        )
       )
     )
-  ))
+  )
+)
 
 server <- function(input, output) {
   bs_themer()
@@ -166,11 +341,11 @@ server <- function(input, output) {
   
   output$plot <- renderPlotly({
     # Create a tally of schools$District
-    district_counts <- table(schools$Title)
-    district_counts <- sort(district_counts, decreasing = TRUE)
+    title_counts <- table(schools$Title)
+    title_counts <- sort(title_counts, decreasing = TRUE)
     
     # Select the top ten districts by count
-    top_ten <- head(district_counts, 10)
+    top_ten <- head(title_counts, 10)
     
     # Create a horizontal bar chart using plot_ly
     plot_ly(
@@ -182,8 +357,10 @@ server <- function(input, output) {
       layout(paper_bgcolor='#212946', plot_bgcolor ='#212946', font = list(color = '#FFFFFF'),
              yaxis = list(title = "State", categoryorder = "total ascending"),
              xaxis = list(title = "Count")
-    ) 
+      ) 
   })
+  
+  
   
   output$plot2 <- renderPlotly({
     # Get the top ten authors by count
@@ -197,10 +374,11 @@ server <- function(input, output) {
     filtered_schools <- schools %>%
       filter(Author %in% top_authors)
     
-    # Calculate the total number of mentions and unique titles per author
+    # Calculate the total number of mentions, unique titles, and unique states per author
     author_counts <- filtered_schools %>%
       group_by(Author) %>%
       summarise(Total_Mentions = n(),
+                Unique_States = n_distinct(State),
                 Unique_Titles = n_distinct(Title)) %>%
       arrange(desc(Total_Mentions))
     
@@ -214,19 +392,25 @@ server <- function(input, output) {
                 marker = list(color = "#8CDED9FF", 
                               line = list(color = '#08F7FE', 
                                           width = 1))) %>%
+      add_trace(y = ~Unique_States, name = "Total States", type = "bar", 
+                marker = list(color = "#FF4E50", 
+                              line = list(color = '#FF4E50', 
+                                          width = 1))) %>%
       add_trace(y = ~Unique_Titles, name = "Unique Titles", type = "bar", 
                 marker = list(color = "#FFA500", 
                               line = list(color = '#FFC900', 
                                           width = 1))) %>%
+      
       layout(barmode = "group", font = list(color = '#FFFFFF'),
-             xaxis = list(title = "Author", tickangle = 0, tickfont = list(size = 11)),
+             xaxis = list(title = "Author", tickangle = 45, tickfont = list(size = 11)),
              yaxis = list(title = "Count"),
              paper_bgcolor = "#212946",
              plot_bgcolor = "#212946",
              margin = mrg,
              hovermode = "x",
-             title = "Top Ten Authors by Individual Bans and Unique Titles")
+             title = "Top Ten Authors by Individual Bans, Unique Titles, and Total States")
   })
+  
   
   
   click <- reactiveValues(clickedState = NULL)
@@ -345,7 +529,7 @@ server <- function(input, output) {
     
     if (is.null(click$clickedState)) {
       # Count the occurrences of each state
-      counts <- table(schools$State)
+      counts <- table(schools$District)
       
       # Convert to df
       counts_df <- as.data.frame(counts, stringsAsFactors = FALSE)
@@ -359,13 +543,14 @@ server <- function(input, output) {
       
       # Create the horizontal bar chart using plot_ly
       plot_ly(data = top_ten, y = ~State, x = ~Count, type = "bar", orientation = "h", #%>% 
-        marker = list(color = '#143E5C')) %>%  
-        #line = list(color = '#8CDED9FF', width = 1))) %>%
-        #textfont = list(color = '#FFFFFF')) %>%
-        layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
+        marker = list(color = '#7a8288', 
+        line = list(color = '#FF00FF', width = 1))) %>%
+        #textfont = list(color = '#FFFFFF')) %>%  #4D7593 #143E5C
+        layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFFFFF'),
                yaxis = list(title = "State", categoryorder = "total ascending"),
-               xaxis = list(title = "Count"),
-               showlegend = FALSE
+               xaxis = list(title = "Count", gridcolor = 'rgba(255, 255, 255, 0.5)'),
+               showlegend = FALSE,
+               hoverlabel = list(font = list(color = '#FFFFFF'))
         )
     } else if (!is.null(click$clickedState)) {
       filteredData <- schools[schools$State %in% click$clickedState, ]
@@ -397,13 +582,14 @@ server <- function(input, output) {
         #marker = list(color = '#000000', 
         #line = list(color = '#000000', width = 1)),
         #textfont = list(color = '#FFFFFF')) %>%
-        layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
+        layout(paper_bgcolor='#323C44', plot_bgcolor ='#323C44', font = list(color = '#000000'),
                xaxis = list(title = "Count"),
                yaxis = list(title = "", categoryorder = "total ascending"),
                title = paste("Banned Books by",stateName, "District"),
                
                margin = mrg,
-               showlegend = FALSE
+               showlegend = FALSE,
+               hoverlabel = list(font = list(color = '#FFFFFF'))
         )
     }
   })
@@ -426,14 +612,15 @@ server <- function(input, output) {
       # Select top ten topics
       top_ten2 <- head(counts_df2, 10)
       
-      plot_ly(data = top_ten2, x = ~Count, y = ~Topic, type = "bar") %>%
-        #marker = list(color = '#000000', 
-        #line = list(color = '#000000', width = 1)),
+      plot_ly(data = top_ten2, x = ~Count, y = ~Topic, type = "bar", #%>% 
+              marker = list(color = '#7a8288', #2C5985FF
+        line = list(color = '#FFA500', width = 1))) %>% 
         #textfont = list(color = '#FFFFFF')) %>%
-        layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
+        layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFFFFF'),
                xaxis = list(title = "Count"),
                yaxis = list(title = "Topic",categoryorder = "total ascending"),
-               showlegend = FALSE
+               showlegend = FALSE,
+               hoverlabel = list(font = list(color = '#FFFFFF'))
         )
     } else {
       # sort by click
@@ -452,7 +639,7 @@ server <- function(input, output) {
         #marker = list(color = '#000000', 
         #line = list(color = '#000000', width = 1)),
         #textfont = list(color = '#FFFFFF')) %>%
-        layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
+        layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', font = list(color = '#000000'),
                xaxis = list(title = "Count"),
                yaxis = list(title = "Topic", categoryorder = "total ascending"),
                showlegend = FALSE
@@ -611,7 +798,7 @@ server <- function(input, output) {
           #marker = list(color = '#000000', 
           #line = list(color = '#000000', width = 1)),
           #textfont = list(color = '#FFFFFF')) %>%
-          layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
+          layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', font = list(color = '#000000'),
                  xaxis = list(title = "Year"),
                  yaxis = list(title = "Count"),
                  showlegend = FALSE
@@ -645,7 +832,7 @@ server <- function(input, output) {
           #marker = list(color = '#000000', 
           #line = list(color = '#000000', width = 1)),
           #textfont = list(color = '#FFFFFF')) %>%
-          layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
+          layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', font = list(color = '#000000'),
                  xaxis = list(title = ""),
                  yaxis = list(title = ""),
                  showlegend = TRUE,
@@ -665,7 +852,7 @@ server <- function(input, output) {
           #marker = list(color = '#000000', 
           #line = list(color = '#000000', width = 1)),
           #textfont = list(color = '#FFFFFF')) %>%
-          layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', #font = list(color = '#000000'),
+          layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', font = list(color = '#000000'),
                  xaxis = list(title = "Year"),
                  yaxis = list(title = "Count"),
                  showlegend = FALSE
@@ -692,7 +879,7 @@ server <- function(input, output) {
       plot_ly(data = counts_df4, x = ~Count, y = ~Topic, type = "bar") %>%
         layout(
           paper_bgcolor = '#7a8288',
-          plot_bgcolor = '#7a8288',
+          plot_bgcolor = '#7a8288', font = list(color = '#000000'),
           xaxis = list(title = "Count"),
           yaxis = list(title = "Topic", categoryorder = "total ascending"),
           showlegend = FALSE,
@@ -717,7 +904,7 @@ server <- function(input, output) {
       plot_ly(data = counts_df4, x = ~Count, y = ~Topic, type = "bar") %>%
         layout(
           paper_bgcolor = '#7a8288',
-          plot_bgcolor = '#7a8288',
+          plot_bgcolor = '#7a8288', font = list(color = '#000000'),
           xaxis = list(title = "Count"),
           yaxis = list(title = "Topic", categoryorder = "total ascending"),
           showlegend = FALSE,
