@@ -1,7 +1,10 @@
 library(shiny)
+library(tidyverse)
 library(dplyr)
 library(shinyjs)
 library(leaflet)
+library(leaflet.extras)
+library(leaflet.extras2)
 library(DT)
 library(sf)
 library(viridis)
@@ -11,13 +14,19 @@ library(bslib)
 library(thematic)
 library(shinythemes)
 library(shinyglide)
+library(plotly)
+library(ggplot2)
+library(sass)
+#library(shinyWidgets)
+library(rgeos)
 #library(anytime)
 #library(shinymaterial)
 #thematic::thematic_shiny(font = "auto")
 
 #theme <- bslib::bs_theme(version = 5, bootswatch = "darkly")
-
-#click <- reactiveValues(clickedState = NULL)
+source("global.R")
+#mapbox <- Sys.getenv("MAPBOX_API_KEY")
+attribution <- "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a"
 
 ui <- fluidPage(
   #theme = bslib::bs_theme(version = 5, bootswatch = "slate"),
@@ -32,7 +41,7 @@ ui <- fluidPage(
              color: black !important;
              box-shadow: inset 0 0 0 9999px #87AECC !important;}"
     )
-  ),
+  ), #"#08F7FE" "#87AECC"
   # tags$head(
   #   tags$style(HTML("
   #     /* Customize the height of datatable rows */
@@ -42,7 +51,7 @@ ui <- fluidPage(
   #     }
   #   "))
   # ),
-  titlePanel("Banned Books"),
+  titlePanel("Banned Book Directory"),
   
   tabsetPanel(
     id = "nav",
@@ -72,6 +81,8 @@ ui <- fluidPage(
                mainPanel(
                  leafletOutput("map2"),
                  actionButton("resetButton2", "Reset"),
+                 span(actionButton("reopenButton2", "Slideshow"),
+                      style = "position:absolute;right:1em;"),
                  DT::dataTableOutput("table2")
                )
              ))
@@ -97,7 +108,7 @@ ui <- fluidPage(
             HTML("This project seeks to raise awareness about book banning in the US. It also specifically 
             focuses on what type of content is being banned and where from a local level by using a form of 
                  unsupervised machine learning (topic modeling)."),
-            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
+            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block; color: white"
           )
         )
       ),
@@ -110,34 +121,47 @@ ui <- fluidPage(
             HTML("<b>What is a school book ban and where does this data come from?</b>")
           ),
           tags$q(
-            "PEN America defines a school book ban as any action taken against a book based on its content and as a result of parent or community challenges, administrative decisions, or in response to direct or threatened action by lawmakers or other governmental officials, that leads to a previously accessible book being either completely removed from availability to students, or where access to a book is restricted or diminished."
+            "PEN America defines a school book ban as any action taken against a book based on its content 
+            and as a result of parent or community challenges, administrative decisions, or in response to 
+            direct or threatened action by lawmakers or other governmental officials, that leads to a previously 
+            accessible book being either completely removed from availability to students, or where access to a 
+            book is restricted or diminished."
           ),
+          style = "color:white",
           div(style = "height: 25px;"),
           tags$q(
-            "PEN America records book bans through publicly available data on district or school websites, news sources, Public Records Requests, and school board minutes. The data presented here is limited. The true magnitude of book banning in the 2022-23 school year is unquestionably much higher."
+            "PEN America records book bans through publicly available data on district or school websites, news 
+            sources, Public Records Requests, and school board minutes. The data presented here is limited. The 
+            true magnitude of book banning in the 2022-23 school year is unquestionably much higher."
           ),
           tags$ul(
             tags$li(
+              style = "list-style-type: none;",
               tags$a(
                 href = "https://pen.org/report/banned-in-the-usa-state-laws-supercharge-book-suppression-in-schools/",
                 target = "_blank",
-                HTML("https://pen.org/report/banned-in-the-usa-state-laws-supercharge-book-suppression-in-schools/")
+                HTML("https://pen.org/report/banned-in-the-usa-state-laws-supercharge-book-suppression-in-schools/"),
+                style = "color: lightblue"
               )
             ),
             div(style = "height: 25px;"),
-          tags$p("INDEX OF SCHOOL BOOK BANS"),
+            tags$p("INDEX OF SCHOOL BOOK BANS"),
             tags$li(
+              style = "list-style-type: none;",
               tags$a(
                 href = "https://pen.org/banned-book-list-2021-2022/",
                 target = "_blank",
-                HTML("https://pen.org/banned-book-list-2021-2022/")
+                HTML("https://pen.org/banned-book-list-2021-2022/"),
+                style = "color: lightblue"
               )
             ),
             tags$li(
+              style = "list-style-type: none;",
               tags$a(
                 href = "https://pen.org/index-of-school-book-bans-2022/",
                 target = "_blank",
-                HTML("https://pen.org/index-of-school-book-bans-2022/")
+                HTML("https://pen.org/index-of-school-book-bans-2022/"),
+                style = "color: lightblue"
               )
             )
           )
@@ -152,7 +176,7 @@ ui <- fluidPage(
           ),
           tags$h4(
             HTML("<b>What type of content is being banned in schools?</b>"),
-            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
+            style = "font-size: 20px; text-align: center; padding: 20px 15px 10px; display: inline-block; color:white"
           ),
           div(style = "display: flex; justify-content: center; align-items: center;",
               tags$img(src = "content2.jpg", style = "max-width: 80%; max-height: 60%;"),
@@ -165,7 +189,8 @@ ui <- fluidPage(
           align = "center",
           tags$img(src = "seahorsebook.jpg", style = "max-width: 80%; max-height: 100%;"),
           tags$h4(
-            HTML("<b>Who is behind the banning?</b>")
+            HTML("<b>Who is behind the banning?</b>"),
+            style = "color: white"
           ),
           tags$q(
             "PEN America has identified at least 50 groups involved in pushing for book bans 
@@ -174,6 +199,7 @@ ui <- fluidPage(
             300 in total;….Most of these groups (including chapters) appear to have formed 
             since 2021 (73 percent, or 262)."
           ),
+          style = "color: white",
           div(style = "height: 25px;"),
           tags$q(
             "The nature of this movement is not one of isolated challenges to books by parents 
@@ -192,10 +218,12 @@ ui <- fluidPage(
           ),
           tags$ul(
             tags$li(
+              style = "list-style-type: none;",
               tags$a(
                 href = "https://pen.org/banned-in-the-usa/",
                 target = "_blank",
-                HTML("https://pen.org/banned-in-the-usa/")
+                HTML("https://pen.org/banned-in-the-usa/"),
+                style = "color: lightblue"
               )
             )
           )
@@ -216,8 +244,8 @@ ui <- fluidPage(
             tags$span(
               HTML("As of June 30th, 2022, the amount of districts with bans (138 school districts in 32 states) 'represented
                    5,049 schools with a combined enrollment of nearly 4 million students.'")
-              ),
-            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
+            ),
+            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block; color: white"
           )
         )
       ),
@@ -228,11 +256,7 @@ ui <- fluidPage(
           #plotlyOutput("plot"),
           tags$iframe(src = "books.html", width = "100%", height = "415px"),
           div(style = "height: 50px;"),
-          plotlyOutput("plot2"),
-          tags$span(
-            HTML("This is the slide with the custom plot"),
-            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
-          )
+          plotlyOutput("plot2")
         )
       ),
       screen(
@@ -245,24 +269,29 @@ ui <- fluidPage(
             HTML("This project also takes a look at books and publications banned in US prisons.<br>",
                  "The Marshall Project is a nonprofit, online journalism organization that focuses on 
                  issues related to criminal justice in the United States.<br>",
-                 "Thus far, they have put together a list of 55,278 books/publications that are banned in 19 states."),
-            #style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
+                 "Thus far, they have put together a list of 55,278 books/publications that are banned in prisons from 19 states."),
+            style = "color: white"
           ),
           tags$ul(
             tags$li(
+              style = "list-style-type: none;",
               tags$a(
                 href = "https://www.themarshallproject.org/2022/12/21/prison-banned-books-list-find-your-state",
                 target = "_blank",
-                HTML("https://www.themarshallproject.org/2022/12/21/prison-banned-books-list-find-your-state")
+                HTML("https://www.themarshallproject.org/2022/12/21/prison-banned-books-list-find-your-state"),
+                style = "color: lightblue"
               )
             ),
             div(style = "height: 25px;"),
-            tags$p("DATA SOURCE:"),
+            tags$p("Data Source:"),
+            style = "color: white",
             tags$li(
+              style = "list-style-type: none;",
               tags$a(
                 href = "https://observablehq.com/@themarshallproject/prison-banned-books",
                 target = "_blank",
-                HTML("https://observablehq.com/@themarshallproject/prison-banned-books")
+                HTML("https://observablehq.com/@themarshallproject/prison-banned-books"),
+                style = "color: lightblue"
               )
             )
           )
@@ -275,10 +304,12 @@ ui <- fluidPage(
           tags$img(src = "bertopic.jpg", style = "max-width: 100%; max-height: 100%;"),
           tags$ul(
             tags$li(
+              style = "list-style-type: none;",
               tags$a(
                 href = "https://maartengr.github.io/BERTopic/index.html",
                 target = "_blank",
-                HTML("https://maartengr.github.io/BERTopic/index.html")
+                HTML("https://maartengr.github.io/BERTopic/index.html"),
+                style = "color: lightblue"
               )
             ),
             div(style = "height: 25px;"),
@@ -286,8 +317,20 @@ ui <- fluidPage(
               HTML("Steps Taken:<br>",
                    "- Grabbed the individual book descriptions from the Google Books API<br>",
                    "- Fed the descriptions into BERTopic and extracted topics from them<br>",
-                   "- Used the generated topics to gain insight by visualizing the geographic distribution of content banning")
+                   "- Used the generated topics to gain insight by visualizing the geographic distribution of content banning"),
+              style = "color:white"
+            ),
+            tags$div(
+              style = "height: 25px;"
+            ),
+            tags$h5(
+              HTML("Disclaimer:<br>"),
+              tags$p(
+                "Due to the nature of the project, there will be some degree of error in this analysis. The topic model is only as good as the data that it's fed. Sometimes the wrong book description is grabbed, which can affect the results. I've tried to ensure that most are correct, but due to the large number of titles, it's a very tedious process."
+              ),
+              style = "color:white"
             )
+            
           )
         )
       ),
@@ -297,8 +340,9 @@ ui <- fluidPage(
           width = 12,
           align = "center",
           tags$img(src = "words.jpg", style = "max-width: 100%; max-height: 100%;"),
-          tags$span(
-            HTML("Top Banned Topics in Prison")
+          tags$h1(
+            style = "color: white; font-size: 24px; text-transform: none;",
+            "Top Banned Topics in Prison"
           )
         )
       ),
@@ -308,10 +352,10 @@ ui <- fluidPage(
           align = "center",
           div(style = "height: 100px;"),
           tags$iframe(src = "prison_topics_over_time.html", width = "80%", height = "500px", style = "margin-left: 50px;"),
-          tags$span(
-            HTML("This is the third slide"),
-            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block"
-          )
+          tags$h1(
+            style = "color: white; font-size: 24px; text-transform: none;",
+            "What's Trending in Prison Reading Material?"
+          ),
         )
       )
     )
@@ -319,7 +363,24 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
-  bs_themer()
+  #bs_themer()
+  
+  # Define reactive dfs from imported csv files
+  schools <- reactive({
+    schools_final
+  })
+  
+  p <- reactive({
+    p1
+  })
+  
+  df <- reactive({
+    df_prison
+  })
+  
+  df2 <- reactive({
+    df2_school
+  })
   
   # Reset clickedState when the corresponding tab is not active
   observeEvent(input$nav, {
@@ -339,39 +400,16 @@ server <- function(input, output) {
     showModal(myModal)
   })
   
-  output$plot <- renderPlotly({
-    # Create a tally of schools$District
-    title_counts <- table(schools$Title)
-    title_counts <- sort(title_counts, decreasing = TRUE)
-    
-    # Select the top ten districts by count
-    top_ten <- head(title_counts, 10)
-    
-    # Create a horizontal bar chart using plot_ly
-    plot_ly(
-      tibble(x = top_ten, y = names(top_ten)),
-      x = ~x,
-      y = ~y,
-      type = "bar",
-      orientation = "h", marker = list(color = ten_pal, line = list(color = '#8CDED9FF', width = 1))) %>% 
-      layout(paper_bgcolor='#212946', plot_bgcolor ='#212946', font = list(color = '#FFFFFF'),
-             yaxis = list(title = "State", categoryorder = "total ascending"),
-             xaxis = list(title = "Count")
-      ) 
-  })
-  
-  
-  
   output$plot2 <- renderPlotly({
     # Get the top ten authors by count
-    top_authors <- schools$Author %>%
+    top_authors <- schools()$Author %>%
       table() %>%
       sort(decreasing = TRUE) %>%
       head(10) %>%
       names()
     
     # Filter the dataframe to include only the top authors
-    filtered_schools <- schools %>%
+    filtered_schools <- schools() %>%
       filter(Author %in% top_authors)
     
     # Calculate the total number of mentions, unique titles, and unique states per author
@@ -417,9 +455,9 @@ server <- function(input, output) {
   # Choropleth map for banned school books
   output$map1 <- renderLeaflet({
     leaflet(df_sf2) %>%
-      addTiles(mapbox) %>%
+      addTiles(mapbox, attribution) %>%
       addPolygons(
-        fillColor = ~pal2(df2$State_Count),
+        fillColor = ~pal2(df2()$State_Count),
         weight = 1,
         opacity = 1,
         color = "white",
@@ -440,11 +478,12 @@ server <- function(input, output) {
       ) %>% 
       addLegend(
         pal = pal2,
-        values = ~schools$State_Count,
+        values = ~schools()$State_Count,
         opacity = 0.9,
         title = "Bans",
         position = "bottomright"
-      ) %>% setView(lat = 38.3283, lng = -98.5795, zoom = 4)
+      ) %>% setView(lat = 38.3283, lng = -98.5795, zoom = 4) %>% 
+      addResetMapButton()
   })
   
   originalData1 <- reactiveVal()
@@ -453,7 +492,7 @@ server <- function(input, output) {
   
   # Update the original filtered data when the app starts
   observe({
-    originalData1(schools[, c(
+    originalData1(schools()[, c(
       "State", "State_Count", "Title", "Author", "description", "Topic", "published_date", "publisher", "categories",
       "Type.of.Ban", "District", "Date.of.Challenge.Removal",  
       "Origin.of.Challenge")
@@ -529,11 +568,11 @@ server <- function(input, output) {
     
     if (is.null(click$clickedState)) {
       # Count the occurrences of each state
-      counts <- table(schools$District)
+      counts <- table(schools()$District)
       
       # Convert to df
       counts_df <- as.data.frame(counts, stringsAsFactors = FALSE)
-      colnames(counts_df) <- c("State", "Count")
+      colnames(counts_df) <- c("District", "Count")
       
       # Sort the data frame by count in descending order
       counts_df <- counts_df[order(-counts_df$Count), ]
@@ -541,19 +580,33 @@ server <- function(input, output) {
       # Select the top ten states
       top_ten <- head(counts_df, 10)
       
+      # Update the district names in top_ten using gsub
+      top_ten$District <- gsub("Central York School District", "Central York School District (PA)", top_ten$District)
+      top_ten$District <- gsub("North East Independent School District", "North East Independent School District (TX)", top_ten$District)
+      top_ten$District <- gsub("Collierville Schools", "Collierville Schools (TN)", top_ten$District)
+      top_ten$District <- gsub("Frisco Independent School District", "Frisco Independent School District (TX)", top_ten$District)
+      top_ten$District <- gsub("Wentzville School District", "Wentzville School District (MO)", top_ten$District)
+      top_ten$District <- gsub("Duval County Public Schools", "Duval County Public Schools (FL)", top_ten$District)
+      top_ten$District <- gsub("Indian River County School District", "Indian River County School District (FL)", top_ten$District)
+      top_ten$District <- gsub("Escambia County Public Schools", "Escambia County Public Schools (FL)", top_ten$District)
+      top_ten$District <- gsub("Granbury Independent School District", "Granbury Independent School District (TX)", top_ten$District)
+      top_ten$District <- gsub("Beaufort County School District", "Beaufort County School District (SC)", top_ten$District)
+      
       # Create the horizontal bar chart using plot_ly
-      plot_ly(data = top_ten, y = ~State, x = ~Count, type = "bar", orientation = "h", #%>% 
-        marker = list(color = '#7a8288', 
-        line = list(color = '#FF00FF', width = 1))) %>%
+      plot_ly(data = top_ten, y = ~District, x = ~Count, type = "bar", orientation = "h", #%>% 
+              marker = list(color = '#00FFFB')) %>%  
+        #line = list(color = '#00FFFB', width = 1))) %>%
         #textfont = list(color = '#FFFFFF')) %>%  #4D7593 #143E5C
         layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFFFFF'),
-               yaxis = list(title = "State", categoryorder = "total ascending"),
-               xaxis = list(title = "Count", gridcolor = 'rgba(255, 255, 255, 0.5)'),
+               yaxis = list(title = "", categoryorder = "total ascending"),
+               xaxis = list(title = "", gridcolor = 'rgba(255, 255, 255, 0.5)'),
                showlegend = FALSE,
-               hoverlabel = list(font = list(color = '#FFFFFF'))
+               title = "Districts With Most Book Bans",
+               margin = mrg,
+               hoverlabel = list(font = list(color = '#000'))
         )
     } else if (!is.null(click$clickedState)) {
-      filteredData <- schools[schools$State %in% click$clickedState, ]
+      filteredData <- schools()[schools()$State %in% click$clickedState, ]
       
       # Calculate the count for each district
       counts <- table(filteredData$District)
@@ -578,18 +631,17 @@ server <- function(input, output) {
                   b = 50, t = 50)
       
       # Horizontal bar chart
-      plot_ly(data = counts_df, y = ~District, x = ~Count, type = "bar", orientation = 'h') %>%
-        #marker = list(color = '#000000', 
-        #line = list(color = '#000000', width = 1)),
+      plot_ly(data = counts_df, y = ~District, x = ~Count, type = "bar", orientation = 'h',
+              marker = list(color = '#00FFFB')) %>% 
+        #line = list(color = '#FF00FF', width = 1))) %>%
         #textfont = list(color = '#FFFFFF')) %>%
-        layout(paper_bgcolor='#323C44', plot_bgcolor ='#323C44', font = list(color = '#000000'),
-               xaxis = list(title = "Count"),
+        layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFFFFF'),
+               xaxis = list(title = "Count", gridcolor = 'rgba(255, 255, 255, 0.5)'),
                yaxis = list(title = "", categoryorder = "total ascending"),
-               title = paste("Banned Books by",stateName, "District"),
-               
+               title = paste("Number of Books Banned by",stateName, "District"),
                margin = mrg,
                showlegend = FALSE,
-               hoverlabel = list(font = list(color = '#FFFFFF'))
+               hoverlabel = list(font = list(color = '#000'))
         )
     }
   })
@@ -600,7 +652,7 @@ server <- function(input, output) {
     
     if (is.null(click$clickedState)) {
       
-      top_ten_topics <- table(schools$Topic)
+      top_ten_topics <- table(schools()$Topic)
       
       # Convert to df
       counts_df2 <- as.data.frame(top_ten_topics, stringsAsFactors = FALSE)
@@ -613,18 +665,20 @@ server <- function(input, output) {
       top_ten2 <- head(counts_df2, 10)
       
       plot_ly(data = top_ten2, x = ~Count, y = ~Topic, type = "bar", #%>% 
-              marker = list(color = '#7a8288', #2C5985FF
-        line = list(color = '#FFA500', width = 1))) %>% 
+              marker = list(color = '#FFA500')) %>%  #2C5985FF
+        #line = list(color = '#FFA500', width = 1))) %>% 
         #textfont = list(color = '#FFFFFF')) %>%
         layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFFFFF'),
-               xaxis = list(title = "Count"),
-               yaxis = list(title = "Topic",categoryorder = "total ascending"),
+               xaxis = list(title = "", gridcolor = 'rgba(255, 255, 255, 0.5)'),
+               yaxis = list(title = "", categoryorder = "total ascending"),
                showlegend = FALSE,
-               hoverlabel = list(font = list(color = '#FFFFFF'))
+               title = "Top Identified Topics in Schools",
+               margin = mrg,
+               hoverlabel = list(font = list(color = '#000000'))
         )
     } else {
       # sort by click
-      filteredData <- schools[schools$State == click$clickedState, ]
+      filteredData <- schools()[schools()$State == click$clickedState, ]
       top_ten_topics <- table(filteredData$Topic)
       
       
@@ -635,14 +689,20 @@ server <- function(input, output) {
       
       top_ten2 <- head(counts_df2, 10)
       
-      plot_ly(data = top_ten2, x = ~Count, y = ~Topic, type = "bar") %>% 
-        #marker = list(color = '#000000', 
-        #line = list(color = '#000000', width = 1)),
+      # Get the state name from the first row of filtered data
+      stateName <- unique(filteredData$State)[1]
+      
+      plot_ly(data = top_ten2, x = ~Count, y = ~Topic, type = "bar",
+              marker = list(color = '#FFA500')) %>% #2C5985FF
+        #line = list(color = '#FFA500', width = 1))) %>% 
         #textfont = list(color = '#FFFFFF')) %>%
-        layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', font = list(color = '#000000'),
-               xaxis = list(title = "Count"),
-               yaxis = list(title = "Topic", categoryorder = "total ascending"),
-               showlegend = FALSE
+        layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFFFFF'),
+               xaxis = list(title = "", gridcolor = 'rgba(255, 255, 255, 0.5)'),
+               yaxis = list(title = "", categoryorder = "total ascending"),
+               title = paste("Identified Topics Banned in",stateName, "Schools"),
+               margin = mrg,
+               showlegend = FALSE,
+               hoverlabel = list(font = list(color = '#000'))
         )
     }
   })
@@ -650,9 +710,9 @@ server <- function(input, output) {
   # Render the choropleth map for prison books
   output$map2 <- renderLeaflet({
     leaflet(df_sf) %>%
-      addTiles(mapbox) %>%
+      addTiles(mapbox, attribution) %>%
       addPolygons(
-        fillColor = ~pal(df$State_Count),
+        fillColor = ~pal(df()$State_Count),
         color = "white",
         weight = 1,
         opacity = 1,
@@ -673,12 +733,13 @@ server <- function(input, output) {
       ) %>%
       addLegend(
         pal = pal,
-        values = ~p$State_Count,
+        values = ~p()$State_Count,
         opacity = 0.9,
         title = "Bans",
         position = "bottomright"
       ) %>%
-      setView(lat = 38.3283, lng = -98.5795, zoom = 4)
+      setView(lat = 38.3283, lng = -98.5795, zoom = 4) %>% 
+      addResetMapButton() 
   })
   
   # Reactive value to store the original filtered data
@@ -689,7 +750,7 @@ server <- function(input, output) {
   
   # Update the original filtered data when the app starts
   observe({
-    originalData2(p[, c(
+    originalData2(p()[, c(
       "state_arc", "State_Count", "publication", "topic_description",
       "author", "Name", "date", "reason", "publication_date",
       "publisher", "categories"
@@ -751,6 +812,11 @@ server <- function(input, output) {
   });"
       ))
   })
+  
+  # Show info modal with button click
+  observeEvent(input$reopenButton2, {
+    showModal(myModal)
+  })
   #values <- reactiveValues(chart = NULL)
   # Reset datatable when the "Reset" button is clicked
   observeEvent(input$resetButton2, {
@@ -769,9 +835,9 @@ server <- function(input, output) {
     
     if (is.null(click$clickedState)) {
       # Show state_counts over the entire dataset
-      counts3 <- table(p$state_arc, format(as.Date(p$date), "%Y"))
+      counts3 <- table(p()$state_arc, format(as.Date(p()$date), "%Y"))
       counts_df3 <- as.data.frame(counts3)
-      state_counts <- counts_df3[counts_df3$Var1 %in% unique(p$state_arc), ]
+      state_counts <- counts_df3[counts_df3$Var1 %in% unique(p()$state_arc), ]
       
       if (nrow(state_counts) == 0) {
         # No dates available for any state
@@ -782,7 +848,7 @@ server <- function(input, output) {
             showlegend = TRUE,
             annotations = list(
               text = "No data available",
-              xref = "paper",  # Set the x-coordinate reference to the plot's coordinate system
+              xref = "paper",  
               yref = "paper",
               x = 0.5,
               y = 0.5,
@@ -793,21 +859,24 @@ server <- function(input, output) {
       } else {
         
         total_counts <- aggregate(Freq ~ Var2, data = state_counts, FUN = sum)
-        # Create the bar chart using plot_ly
-        plot_ly(data = total_counts, x = ~Var2, y = ~Freq, type = "bar") %>%
-          #marker = list(color = '#000000', 
-          #line = list(color = '#000000', width = 1)),
-          #textfont = list(color = '#FFFFFF')) %>%
-          layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', font = list(color = '#000000'),
+        
+        plot_ly(data = total_counts, x = ~Var2, y = ~Freq, type = "scatter",
+                mode = "lines", fill = "tozeroy", fillcolor = 'rgba(0, 255, 251, 0.1)',
+                line = list(color = '#00FFFB', width = 2)) %>%
+          layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFF'),
                  xaxis = list(title = "Year"),
-                 yaxis = list(title = "Count"),
-                 showlegend = FALSE
-          ) 
+                 yaxis = list(title = "Total Bans"),
+                 showlegend = FALSE,
+                 title = 'Prison Ban Timeline',
+                 margin = mrg,
+                 hoverlabel = list(font = list(color = '#000'))
+          )
+        
       }
     } else {
       #clickedState <- click$clickedState
       # Filtered data for the selected state
-      filteredData <- p[p$state_arc %in% click$clickedState, ]
+      filteredData <- p()[p()$state_arc %in% click$clickedState, ]
       
       # Extract year from the "date" column
       filteredData$Year <- format(as.Date(filteredData$date, format = "%Y-%m-%d"), "%Y")
@@ -832,7 +901,7 @@ server <- function(input, output) {
           #marker = list(color = '#000000', 
           #line = list(color = '#000000', width = 1)),
           #textfont = list(color = '#FFFFFF')) %>%
-          layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', font = list(color = '#000000'),
+          layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFF'),
                  xaxis = list(title = ""),
                  yaxis = list(title = ""),
                  showlegend = TRUE,
@@ -847,14 +916,18 @@ server <- function(input, output) {
                  )
           )
       } else {
+        stateName <- unique(filteredData$state_arc)[1]
         # Create the bar chart using plot_ly
-        plot_ly(data = state_counts, x = ~Var2, y = ~Freq, type = "bar") %>%
-          #marker = list(color = '#000000', 
+        plot_ly(data = state_counts, x = ~Var2, y = ~Freq, type = "scatter",
+                mode = "lines", fill = "tozeroy", fillcolor = 'rgba(0, 255, 251, 0.1)',
+                line = list(color = '#00FFFB', width = 2)) %>%
           #line = list(color = '#000000', width = 1)),
           #textfont = list(color = '#FFFFFF')) %>%
-          layout(paper_bgcolor='#7a8288', plot_bgcolor ='#7a8288', font = list(color = '#000000'),
+          layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFF'),
                  xaxis = list(title = "Year"),
-                 yaxis = list(title = "Count"),
+                 yaxis = list(title = "Total Bans"),
+                 title = paste(stateName,"Prison Ban Timeline"),
+                 margin = mrg,
                  showlegend = FALSE
           ) 
       }
@@ -867,7 +940,7 @@ server <- function(input, output) {
     
     if (is.null(click$clickedState)) {
       #if (is.null(values$chart)) {  
-      top_ten_topics <- table(p$Name)
+      top_ten_topics <- table(p()$Name)
       
       # Convert to df
       counts_df4 <- as.data.frame(top_ten_topics, stringsAsFactors = FALSE)
@@ -876,24 +949,28 @@ server <- function(input, output) {
       # Sort in descending order
       counts_df4 <- counts_df4[order(-counts_df4$Count), ]
       
-      plot_ly(data = counts_df4, x = ~Count, y = ~Topic, type = "bar") %>%
+      plot_ly(data = counts_df4, x = ~Count, y = ~Topic, type = "bar", 
+              marker = list(color = '#FFA500')) %>%
         layout(
-          paper_bgcolor = '#7a8288',
-          plot_bgcolor = '#7a8288', font = list(color = '#000000'),
-          xaxis = list(title = "Count"),
-          yaxis = list(title = "Topic", categoryorder = "total ascending"),
+          paper_bgcolor = '#272b30',
+          plot_bgcolor = '#272b30', font = list(color = '#FFF'),
+          xaxis = list(title = "", gridcolor = 'grey', side = 'top'),
+          yaxis = list(title = "", categoryorder = "total ascending"),
+          title = 'Identified Topics in Prison',
+          margin = mrg,
           showlegend = FALSE,
           height = 3600,  # Set a fixed height
-          margin = list(l = 50, r = 50, b = 100, t = 50),  # Adjust margins for better display
+          margin = mrg,  # Adjust margins for better display
           autosize = FALSE,  # Disable auto-sizing
-          config = list(scrollZoom = FALSE)  # Disable auto-sizing
-        )
+          config = list(scrollZoom = FALSE),  # Disable auto-sizing
+          hoverlabel = list(font = list(color = '#000'))
+          )
       #}
       #values$chart
       
     } else {
       # sort by click
-      filteredData <- p[p$state_arc == click$clickedState, ]
+      filteredData <- p()[p()$state_arc == click$clickedState, ]
       top_ten_topics <- table(filteredData$Name)
       
       counts_df4 <- as.data.frame(top_ten_topics, stringsAsFactors = FALSE)
@@ -901,15 +978,23 @@ server <- function(input, output) {
       
       counts_df4 <- counts_df4[order(-counts_df4$Count), ]
       
-      plot_ly(data = counts_df4, x = ~Count, y = ~Topic, type = "bar") %>%
+      stateName <- unique(filteredData$state_arc)[1]
+      
+      totalTopics <- sum(counts_df4$Count)
+      
+      height <- ifelse(totalTopics <= 100, 500, ifelse(totalTopics <= 500, 1800, 3600))  # Set height based on condition
+      
+      plot_ly(data = counts_df4, x = ~Count, y = ~Topic, type = "bar",
+              marker = list(color = '#FFA500')) %>%
         layout(
-          paper_bgcolor = '#7a8288',
-          plot_bgcolor = '#7a8288', font = list(color = '#000000'),
-          xaxis = list(title = "Count"),
-          yaxis = list(title = "Topic", categoryorder = "total ascending"),
+          paper_bgcolor = '#272b30',
+          plot_bgcolor = '#272b30', font = list(color = '#FFF'),
+          xaxis = list(title = "", gridcolor = 'grey', side = 'top'),
+          yaxis = list(title = "", categoryorder = "total ascending"),
+          title = paste("Identified Topics Banned in", stateName, "Prisons"),
           showlegend = FALSE,
-          height = 3600,  # Set a fixed height
-          margin = list(l = 50, r = 50, b = 100, t = 50),  # Adjust margins for better display
+          height = height,  # Set a fixed height
+          margin = mrg, #list(l = 50, r = 50, b = 100, t = 50),  # Adjust margins for better display
           autosize = FALSE,  # Disable auto-sizing
           config = list(scrollZoom = FALSE)  # Disable auto-sizing
         )
