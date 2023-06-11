@@ -17,19 +17,11 @@ library(shinyglide)
 library(plotly)
 library(ggplot2)
 library(sass)
-#library(shinyWidgets)
 library(rgeos)
-#library(anytime)
-#library(shinymaterial)
-#thematic::thematic_shiny(font = "auto")
 
-#theme <- bslib::bs_theme(version = 5, bootswatch = "darkly")
 source("global.R")
-#mapbox <- Sys.getenv("MAPBOX_API_KEY")
-attribution <- "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a"
 
 ui <- fluidPage(
-  #theme = bslib::bs_theme(version = 5, bootswatch = "slate"),
   theme = bslib::bs_add_rules(
     bslib::bs_theme(version = 5, bootswatch = "slate",
                     base_font = font_google("Nunito Sans"),
@@ -85,286 +77,18 @@ ui <- fluidPage(
                       style = "position:absolute;right:1em;"),
                  DT::dataTableOutput("table2")
                )
-             ))
-  ),
-  
-  myModal <- modalDialog(
-    id = "slideshowModal",
-    title = htmlOutput("title"),
-    footer = NULL,
-    size = "xl",
-    easyClose = TRUE,
-    fade = TRUE,
-    glide(
-      id = "myglide",
-      screen(
-        column(
-          width = 12,
-          align = "center",
-          div(style = "height: 100px;"),
-          tags$img(src = "BANNED_BOOKS.jpg", style = "max-width: 100%; max-height: 100%;"),
-          div(style = "height: 50px;"),
-          tags$span(
-            HTML("This project seeks to raise awareness about book banning in the US. It also specifically 
-            focuses on what type of content is being banned and where from a local level by using a form of 
-                 unsupervised machine learning (topic modeling)."),
-            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block; color: white"
-          )
-        )
-      ),
-      screen(
-        column(
-          width = 12,
-          align = "center",
-          tags$img(src = "PEN.jpg", style = "max-width: 80%; max-height: 80%;"),
-          tags$h4(
-            HTML("<b>What is a school book ban and where does this data come from?</b>")
-          ),
-          tags$q(
-            "PEN America defines a school book ban as any action taken against a book based on its content 
-            and as a result of parent or community challenges, administrative decisions, or in response to 
-            direct or threatened action by lawmakers or other governmental officials, that leads to a previously 
-            accessible book being either completely removed from availability to students, or where access to a 
-            book is restricted or diminished."
-          ),
-          style = "color:white",
-          div(style = "height: 25px;"),
-          tags$q(
-            "PEN America records book bans through publicly available data on district or school websites, news 
-            sources, Public Records Requests, and school board minutes. The data presented here is limited. The 
-            true magnitude of book banning in the 2022-23 school year is unquestionably much higher."
-          ),
-          tags$ul(
-            tags$li(
-              style = "list-style-type: none;",
-              tags$a(
-                href = "https://pen.org/report/banned-in-the-usa-state-laws-supercharge-book-suppression-in-schools/",
-                target = "_blank",
-                HTML("https://pen.org/report/banned-in-the-usa-state-laws-supercharge-book-suppression-in-schools/"),
-                style = "color: lightblue"
-              )
-            ),
-            div(style = "height: 25px;"),
-            tags$p("INDEX OF SCHOOL BOOK BANS"),
-            tags$li(
-              style = "list-style-type: none;",
-              tags$a(
-                href = "https://pen.org/banned-book-list-2021-2022/",
-                target = "_blank",
-                HTML("https://pen.org/banned-book-list-2021-2022/"),
-                style = "color: lightblue"
-              )
-            ),
-            tags$li(
-              style = "list-style-type: none;",
-              tags$a(
-                href = "https://pen.org/index-of-school-book-bans-2022/",
-                target = "_blank",
-                HTML("https://pen.org/index-of-school-book-bans-2022/"),
-                style = "color: lightblue"
-              )
-            )
-          )
-        )
-      ),
-      screen(
-        column(
-          width = 12,
-          align = "center",
-          div(style = "display: flex; justify-content: center; align-items: center;",
-              tags$img(src = "content1.jpg", style = "max-width: 80%; max-height: 60%;"),
-          ),
-          tags$h4(
-            HTML("<b>What type of content is being banned in schools?</b>"),
-            style = "font-size: 20px; text-align: center; padding: 20px 15px 10px; display: inline-block; color:white"
-          ),
-          div(style = "display: flex; justify-content: center; align-items: center;",
-              tags$img(src = "content2.jpg", style = "max-width: 80%; max-height: 60%;"),
-          )
-        )
-      ),
-      screen(
-        column(
-          width = 12,
-          align = "center",
-          tags$img(src = "seahorsebook.jpg", style = "max-width: 80%; max-height: 100%;"),
-          tags$h4(
-            HTML("<b>Who is behind the banning?</b>"),
-            style = "color: white"
-          ),
-          tags$q(
-            "PEN America has identified at least 50 groups involved in pushing for book bans 
-            across the country operating at the national, state or local levels. Of those 50 
-            groups, eight have local or regional chapters that, between them, number at least 
-            300 in total;….Most of these groups (including chapters) appear to have formed 
-            since 2021 (73 percent, or 262)."
-          ),
-          style = "color: white",
-          div(style = "height: 25px;"),
-          tags$q(
-            "The nature of this movement is not one of isolated challenges to books by parents 
-            in different communities; rather, it is an organized effort by advocacy groups and 
-            state politicians with the ultimate aim of limiting access to certain stories, 
-            perspectives, and information."
-          ),
-          div(style = "height: 25px;"),
-          tags$q(
-            "In Williamson County, Tennessee, a challenge from a local Moms For Liberty chapter 
-            resulted in only one title banned from the curriculum, but six books were ascribed 
-            “instructional adjustments.” These six books were not banned in their entirety–and 
-            therefore are not listed in the Index–but wound up with restrictions placed on specific 
-            pages. They can read Sea Horse: The Shyest Fish in the Sea by Chris Butterworth to students, 
-            but they cannot display pages 12-13."
-          ),
-          tags$ul(
-            tags$li(
-              style = "list-style-type: none;",
-              tags$a(
-                href = "https://pen.org/banned-in-the-usa/",
-                target = "_blank",
-                HTML("https://pen.org/banned-in-the-usa/"),
-                style = "color: lightblue"
-              )
-            )
-          )
-        )
-      ),
-      screen(
-        column(
-          width = 12,
-          align = "center",
-          tags$img(src = "school_bans.jpg", style = "max-width: 100%; max-height: 100%;"),
-          tags$span(
-            HTML("Between July 2021 and Dec. 2022, there were a total of:<br>",
-                 "- 4009 individual book bans<br>",
-                 "- 2261 unique titles<br>",
-                 "- in 190 school districts<br>",
-                 "- in 37 states"),
-            div(style = "height: 25px;"),
-            tags$span(
-              HTML("As of June 30th, 2022, the amount of districts with bans (138 school districts in 32 states) 'represented
-                   5,049 schools with a combined enrollment of nearly 4 million students.'")
-            ),
-            style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block; color: white"
-          )
-        )
-      ),
-      screen(
-        column(
-          width = 12,
-          align = "center",
-          #plotlyOutput("plot"),
-          tags$iframe(src = "books.html", width = "100%", height = "415px"),
-          div(style = "height: 50px;"),
-          plotlyOutput("plot2")
-        )
-      ),
-      screen(
-        column(
-          width = 12,
-          align = "center",
-          tags$img(src = "marshall.jpg", style = "max-width: 100%; max-height: 100%;"),
-          div(style = "height: 25px;"),
-          tags$span(
-            HTML("This project also takes a look at books and publications banned in US prisons.<br>",
-                 "The Marshall Project is a nonprofit, online journalism organization that focuses on 
-                 issues related to criminal justice in the United States.<br>",
-                 "Thus far, they have put together a list of 55,278 books/publications that are banned in prisons from 19 states."),
-            style = "color: white"
-          ),
-          tags$ul(
-            tags$li(
-              style = "list-style-type: none;",
-              tags$a(
-                href = "https://www.themarshallproject.org/2022/12/21/prison-banned-books-list-find-your-state",
-                target = "_blank",
-                HTML("https://www.themarshallproject.org/2022/12/21/prison-banned-books-list-find-your-state"),
-                style = "color: lightblue"
-              )
-            ),
-            div(style = "height: 25px;"),
-            tags$p("Data Source:"),
-            style = "color: white",
-            tags$li(
-              style = "list-style-type: none;",
-              tags$a(
-                href = "https://observablehq.com/@themarshallproject/prison-banned-books",
-                target = "_blank",
-                HTML("https://observablehq.com/@themarshallproject/prison-banned-books"),
-                style = "color: lightblue"
-              )
-            )
-          )
-        )
-      ),
-      screen(
-        column(
-          width = 12,
-          align = "center",
-          tags$img(src = "bertopic.jpg", style = "max-width: 100%; max-height: 100%;"),
-          tags$ul(
-            tags$li(
-              style = "list-style-type: none;",
-              tags$a(
-                href = "https://maartengr.github.io/BERTopic/index.html",
-                target = "_blank",
-                HTML("https://maartengr.github.io/BERTopic/index.html"),
-                style = "color: lightblue"
-              )
-            ),
-            div(style = "height: 25px;"),
-            tags$span(
-              HTML("Steps Taken:<br>",
-                   "- Grabbed the individual book descriptions from the Google Books API<br>",
-                   "- Fed the descriptions into BERTopic and extracted topics from them<br>",
-                   "- Used the generated topics to gain insight by visualizing the geographic distribution of content banning"),
-              style = "color:white"
-            ),
-            tags$div(
-              style = "height: 25px;"
-            ),
-            tags$h5(
-              HTML("Disclaimer:<br>"),
-              tags$p(
-                "Due to the nature of the project, there will be some degree of error in this analysis. The topic model is only as good as the data that it's fed. Sometimes the wrong book description is grabbed, which can affect the results. I've tried to ensure that most are correct, but due to the large number of titles, it's a very tedious process."
-              ),
-              style = "color:white"
-            )
-            
-          )
-        )
-      ),
-      
-      screen(
-        column(
-          width = 12,
-          align = "center",
-          tags$img(src = "words.jpg", style = "max-width: 100%; max-height: 100%;"),
-          tags$h1(
-            style = "color: white; font-size: 24px; text-transform: none;",
-            "Top Banned Topics in Prison"
-          )
-        )
-      ),
-      screen(
-        column(
-          width = 12,
-          align = "center",
-          div(style = "height: 100px;"),
-          tags$iframe(src = "prison_topics_over_time.html", width = "80%", height = "500px", style = "margin-left: 50px;"),
-          tags$h1(
-            style = "color: white; font-size: 24px; text-transform: none;",
-            "What's Trending in Prison Reading Material?"
-          ),
-        )
-      )
-    )
-  )
-)
+             )
+           )
+         ),
+       )
 
 server <- function(input, output) {
   #bs_themer()
-  
+  # Show slideshow at startup
+  observeEvent(
+    eventExpr = TRUE,
+    handlerExpr = showModal(myModal)
+  )
   # Define reactive dfs from imported csv files
   schools <- reactive({
     schools_final
@@ -448,8 +172,6 @@ server <- function(input, output) {
              hovermode = "x",
              title = "Top Ten Authors by Individual Bans, Unique Titles, and Total States")
   })
-  
-  
   
   click <- reactiveValues(clickedState = NULL)
   # Choropleth map for banned school books
@@ -817,12 +539,11 @@ server <- function(input, output) {
   observeEvent(input$reopenButton2, {
     showModal(myModal)
   })
-  #values <- reactiveValues(chart = NULL)
+  
   # Reset datatable when the "Reset" button is clicked
   observeEvent(input$resetButton2, {
     click$clickedState <- NULL
     filteredData(originalData2())
-    #output$barChart2 <- renderPlotly({m})
   })
   
   observeEvent(input$map2_shape_click$id,{
@@ -831,7 +552,6 @@ server <- function(input, output) {
   
   # Render the sidebar with the plotly bar chart
   output$barChart2 <- renderPlotly({
-    #click$clickedState <- input$map2_shape_click$id
     
     if (is.null(click$clickedState)) {
       # Show state_counts over the entire dataset
@@ -874,7 +594,6 @@ server <- function(input, output) {
         
       }
     } else {
-      #clickedState <- click$clickedState
       # Filtered data for the selected state
       filteredData <- p()[p()$state_arc %in% click$clickedState, ]
       
@@ -898,9 +617,6 @@ server <- function(input, output) {
       if (nrow(state_counts) == 0) {
         # No dates available for the selected state
         plot_ly(x = NA, y = NA) %>% hide_colorbar() %>% 
-          #marker = list(color = '#000000', 
-          #line = list(color = '#000000', width = 1)),
-          #textfont = list(color = '#FFFFFF')) %>%
           layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFF'),
                  xaxis = list(title = ""),
                  yaxis = list(title = ""),
@@ -921,8 +637,6 @@ server <- function(input, output) {
         plot_ly(data = state_counts, x = ~Var2, y = ~Freq, type = "scatter",
                 mode = "lines", fill = "tozeroy", fillcolor = 'rgba(0, 255, 251, 0.1)',
                 line = list(color = '#00FFFB', width = 2)) %>%
-          #line = list(color = '#000000', width = 1)),
-          #textfont = list(color = '#FFFFFF')) %>%
           layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFF'),
                  xaxis = list(title = "Year"),
                  yaxis = list(title = "Total Bans"),
@@ -936,10 +650,9 @@ server <- function(input, output) {
   
   # Render the sidebar with the plotly top ten topics chart
   output$plotlyOutput2 <- renderPlotly({
-    #clickedState <- input$map2_shape_click$id
     
     if (is.null(click$clickedState)) {
-      #if (is.null(values$chart)) {  
+       
       top_ten_topics <- table(p()$Name)
       
       # Convert to df
@@ -965,8 +678,6 @@ server <- function(input, output) {
           config = list(scrollZoom = FALSE),  # Disable auto-sizing
           hoverlabel = list(font = list(color = '#000'))
           )
-      #}
-      #values$chart
       
     } else {
       # sort by click
@@ -982,7 +693,11 @@ server <- function(input, output) {
       
       totalTopics <- sum(counts_df4$Count)
       
-      height <- ifelse(totalTopics <= 100, 500, ifelse(totalTopics <= 500, 1800, 3600))  # Set height based on condition
+      #height <- ifelse(totalTopics <= 100, 500, ifelse(totalTopics <= 500, 1800, 3600))  # Set height based on condition
+      
+      maxHeight <- 500  # Maximum height for the chart
+      categoryCount <- length(unique(counts_df4$Topic))
+      height <- ifelse(categoryCount <= 10, maxHeight, categoryCount * 50)
       
       plot_ly(data = counts_df4, x = ~Count, y = ~Topic, type = "bar",
               marker = list(color = '#FFA500')) %>%
@@ -994,7 +709,7 @@ server <- function(input, output) {
           title = paste("Identified Topics Banned in", stateName, "Prisons"),
           showlegend = FALSE,
           height = height,  # Set a fixed height
-          margin = mrg, #list(l = 50, r = 50, b = 100, t = 50),  # Adjust margins for better display
+          margin = mrg, # Adjust margins for better display
           autosize = FALSE,  # Disable auto-sizing
           config = list(scrollZoom = FALSE)  # Disable auto-sizing
         )
