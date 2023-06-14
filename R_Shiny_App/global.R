@@ -104,13 +104,14 @@ myModal <- modalDialog(
     screen(
       column(
         width = 12,
+        height = "50%",
         align = "center",
         div(style = "height: 100px;"),
         tags$img(src = "BANNED_BOOKS.jpg", style = "max-width: 100%; max-height: 100%;"),
         div(style = "height: 50px;"),
         tags$span(
-          HTML("This project seeks to raise awareness about book banning in the US. It also specifically 
-            focuses on what type of content is being banned and where from a local level by using a form of 
+          HTML("This project seeks to raise awareness about book banning in the US. It also specifically
+            focuses on what type of content is being banned and where from a local level by using a form of
                  unsupervised machine learning (topic modeling)."),
           style = "font-size: 18px; text-align: center; padding: 20px 15px 10px; display: inline-block; color: white"
         )
@@ -125,17 +126,17 @@ myModal <- modalDialog(
           HTML("<b>What is a school book ban and where does this data come from?</b>")
         ),
         tags$q(
-          "PEN America defines a school book ban as any action taken against a book based on its content 
-            and as a result of parent or community challenges, administrative decisions, or in response to 
-            direct or threatened action by lawmakers or other governmental officials, that leads to a previously 
-            accessible book being either completely removed from availability to students, or where access to a 
+          "PEN America defines a school book ban as any action taken against a book based on its content
+            and as a result of parent or community challenges, administrative decisions, or in response to
+            direct or threatened action by lawmakers or other governmental officials, that leads to a previously
+            accessible book being either completely removed from availability to students, or where access to a
             book is restricted or diminished."
         ),
         style = "color:white",
         div(style = "height: 25px;"),
         tags$q(
-          "PEN America records book bans through publicly available data on district or school websites, news 
-            sources, Public Records Requests, and school board minutes. The data presented here is limited. The 
+          "PEN America records book bans through publicly available data on district or school websites, news
+            sources, Public Records Requests, and school board minutes. The data presented here is limited. The
             true magnitude of book banning in the 2022-23 school year is unquestionably much higher."
         ),
         tags$ul(
@@ -191,33 +192,35 @@ myModal <- modalDialog(
       column(
         width = 12,
         align = "center",
-        tags$img(src = "seahorsebook.jpg", style = "max-width: 80%; max-height: 100%;"),
+        tags$img(src = "seahorse.jpg", style = "max-width: 80%; max-height: 100%;"),
+        div(style = "height: 25px;"),
         tags$h4(
           HTML("<b>Who is behind the banning?</b>"),
           style = "color: white"
         ),
+        div(style = "height: 25px;"),
         tags$q(
-          "PEN America has identified at least 50 groups involved in pushing for book bans 
-            across the country operating at the national, state or local levels. Of those 50 
-            groups, eight have local or regional chapters that, between them, number at least 
-            300 in total;….Most of these groups (including chapters) appear to have formed 
+          "PEN America has identified at least 50 groups involved in pushing for book bans
+            across the country operating at the national, state or local levels. Of those 50
+            groups, eight have local or regional chapters that, between them, number at least
+            300 in total;….Most of these groups (including chapters) appear to have formed
             since 2021 (73 percent, or 262)."
         ),
         style = "color: white",
-        div(style = "height: 25px;"),
+        div(style = "height: 50px;"),
         tags$q(
-          "The nature of this movement is not one of isolated challenges to books by parents 
-            in different communities; rather, it is an organized effort by advocacy groups and 
-            state politicians with the ultimate aim of limiting access to certain stories, 
+          "The nature of this movement is not one of isolated challenges to books by parents
+            in different communities; rather, it is an organized effort by advocacy groups and
+            state politicians with the ultimate aim of limiting access to certain stories,
             perspectives, and information."
         ),
-        div(style = "height: 25px;"),
+        div(style = "height: 50px;"),
         tags$q(
-          "In Williamson County, Tennessee, a challenge from a local Moms For Liberty chapter 
-            resulted in only one title banned from the curriculum, but six books were ascribed 
-            “instructional adjustments.” These six books were not banned in their entirety–and 
-            therefore are not listed in the Index–but wound up with restrictions placed on specific 
-            pages. They can read Sea Horse: The Shyest Fish in the Sea by Chris Butterworth to students, 
+          "In Williamson County, Tennessee, a challenge from a local Moms For Liberty chapter
+            resulted in only one title banned from the curriculum, but six books were ascribed
+            “instructional adjustments.” These six books were not banned in their entirety–and
+            therefore are not listed in the Index–but wound up with restrictions placed on specific
+            pages. They can read Sea Horse: The Shyest Fish in the Sea by Chris Butterworth to students,
             but they cannot display pages 12-13."
         ),
         tags$ul(
@@ -271,7 +274,7 @@ myModal <- modalDialog(
         div(style = "height: 25px;"),
         tags$span(
           HTML("This project also takes a look at books and publications banned in US prisons.<br>",
-               "The Marshall Project is a nonprofit, online journalism organization that focuses on 
+               "The Marshall Project is a nonprofit, online journalism organization that focuses on
                  issues related to criminal justice in the United States.<br>",
                "Thus far, they have put together a list of 55,278 books/publications that are banned in prisons from 19 states."),
           style = "color: white"
@@ -330,7 +333,7 @@ myModal <- modalDialog(
           tags$h5(
             HTML("Disclaimer:<br>"),
             tags$p(
-              "Due to the nature of the project, there will be some degree of error in this analysis. The topic model is only as good as the data that it's fed. Sometimes the wrong book description is grabbed, which can affect the results. I've tried to ensure that most are correct, but due to the large number of titles, it's a very tedious process."
+              "Due to the nature of the project, there will be some degree of error in this analysis. The topic model is only as good as the                   data that it's fed. Sometimes the wrong book description is grabbed, which can affect the results. I've tried to ensure that                    most are correct, but due to the large number of titles, it's a very tedious process."
             ),
             style = "color:white"
           )
@@ -338,7 +341,6 @@ myModal <- modalDialog(
         )
       )
     ),
-    
     screen(
       column(
         width = 12,
@@ -347,6 +349,18 @@ myModal <- modalDialog(
         tags$h1(
           style = "color: white; font-size: 24px; text-transform: none;",
           "Top Banned Topics in Prison"
+        ),
+        tags$p(
+          style = "color: white; font-size: 16px; text-align: justify;",
+          class = "text-center",
+          "This is one of BERTopic’s built-in visualizations. The words shown are based on a ",
+          tags$a(
+            href = "https://maartengr.github.io/BERTopic/api/ctfidf.html",
+            target = "_blank",
+            style = "color: white; text-decoration: underline;",
+            "c-TF-IDF"
+          ),
+          " score which considers both term frequency as well as the importance of each term within the topic."
         )
       )
     ),
@@ -359,7 +373,47 @@ myModal <- modalDialog(
         tags$h1(
           style = "color: white; font-size: 24px; text-transform: none;",
           "What's Trending in Prison Reading Material?"
-        ),
+        )
+      )
+    ),
+    screen(
+      div(
+        style = "display: flex; align-items: center; justify-content: center; height: 90vh;",
+        column(
+          width = 12,
+          align = "center",
+          tags$h1(
+            style = "color: white; font-size: 24px; text-transform: none;",
+            "Acknowledgements:"
+          ),
+          tags$p(
+            style = "color: white; font-size: 16px; text-align: center;",
+            "My name is Rod Miller and this app was part of my final capstone project for Nashville Software School's Data Science program. I was honored to be a member of ",
+            tags$a(
+              href = "https://nss-data-science-cohort-6.github.io/",
+              target = "_blank",
+              style = "color: white; text-decoration: underline;",
+              "Data Science Cohort 6!"
+            ),
+            "I would like to thank my instructors Michael Holloway, Neda Taherkhani, and Rohit Venkat for their feedback and suggestions in helping me complete this project."
+          ),
+          tags$p(
+            style = "color: white; font-size: 16px; text-align: center;",
+            tags$a(
+              href = "https://github.com/RodNSS/banned_book_exploration",
+              target = "_blank",
+              style = "color: white; text-decoration: underline;",
+              "Github"
+            ),
+            " - ",
+            tags$a(
+              href = "https://www.linkedin.com/in/connectwithrod",
+              target = "_blank",
+              style = "color: white; text-decoration: underline;",
+              "LinkedIn"
+            )
+          )
+        )
       )
     )
   )
