@@ -79,7 +79,7 @@ ui <- fluidPage(
                )
              )
            )
-         ),
+         )
        )
 
 server <- function(input, output) {
@@ -119,7 +119,7 @@ server <- function(input, output) {
     }
   })
   
-  # Show info modal with button click
+  # Show slideshow with button click
   observeEvent(input$reopenButton, {
     showModal(myModal)
   })
@@ -286,7 +286,6 @@ server <- function(input, output) {
   
   # Render the sidebar with the plotly bar chart
   output$barChart <- renderPlotly({
-    #clickedState <- input$map1_shape_click$id
     
     if (is.null(click$clickedState)) {
       # Count the occurrences of each state
@@ -315,10 +314,9 @@ server <- function(input, output) {
       top_ten$District <- gsub("Beaufort County School District", "Beaufort County School District (SC)", top_ten$District)
       
       # Create the horizontal bar chart using plot_ly
-      plot_ly(data = top_ten, y = ~District, x = ~Count, type = "bar", orientation = "h", #%>% 
+      plot_ly(data = top_ten, y = ~District, x = ~Count, type = "bar", orientation = "h", 
               marker = list(color = '#00FFFB')) %>%  
         #line = list(color = '#00FFFB', width = 1))) %>%
-        #textfont = list(color = '#FFFFFF')) %>%  #4D7593 #143E5C
         layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFFFFF'),
                yaxis = list(title = "", categoryorder = "total ascending"),
                xaxis = list(title = "", gridcolor = 'rgba(255, 255, 255, 0.5)'),
@@ -327,6 +325,7 @@ server <- function(input, output) {
                margin = mrg,
                hoverlabel = list(font = list(color = '#000'))
         )
+      
     } else if (!is.null(click$clickedState)) {
       filteredData <- schools()[schools()$State %in% click$clickedState, ]
       
@@ -356,7 +355,6 @@ server <- function(input, output) {
       plot_ly(data = counts_df, y = ~District, x = ~Count, type = "bar", orientation = 'h',
               marker = list(color = '#00FFFB')) %>% 
         #line = list(color = '#FF00FF', width = 1))) %>%
-        #textfont = list(color = '#FFFFFF')) %>%
         layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFFFFF'),
                xaxis = list(title = "Count", gridcolor = 'rgba(255, 255, 255, 0.5)'),
                yaxis = list(title = "", categoryorder = "total ascending"),
@@ -370,7 +368,6 @@ server <- function(input, output) {
   
   # Render the sidebar with the plotly top ten topics chart
   output$plotlyOutput1 <- renderPlotly({
-    #clickedState <- input$map1_shape_click$id
     
     if (is.null(click$clickedState)) {
       
@@ -386,10 +383,9 @@ server <- function(input, output) {
       # Select top ten topics
       top_ten2 <- head(counts_df2, 10)
       
-      plot_ly(data = top_ten2, x = ~Count, y = ~Topic, type = "bar", #%>% 
+      plot_ly(data = top_ten2, x = ~Count, y = ~Topic, type = "bar",
               marker = list(color = '#FFA500')) %>%  #2C5985FF
         #line = list(color = '#FFA500', width = 1))) %>% 
-        #textfont = list(color = '#FFFFFF')) %>%
         layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFFFFF'),
                xaxis = list(title = "", gridcolor = 'rgba(255, 255, 255, 0.5)'),
                yaxis = list(title = "", categoryorder = "total ascending"),
@@ -417,7 +413,6 @@ server <- function(input, output) {
       plot_ly(data = top_ten2, x = ~Count, y = ~Topic, type = "bar",
               marker = list(color = '#FFA500')) %>% #2C5985FF
         #line = list(color = '#FFA500', width = 1))) %>% 
-        #textfont = list(color = '#FFFFFF')) %>%
         layout(paper_bgcolor='#272b30', plot_bgcolor ='#272b30', font = list(color = '#FFFFFF'),
                xaxis = list(title = "", gridcolor = 'rgba(255, 255, 255, 0.5)'),
                yaxis = list(title = "", categoryorder = "total ascending"),
@@ -535,7 +530,7 @@ server <- function(input, output) {
       ))
   })
   
-  # Show info modal with button click
+  # Show slideshow with button click
   observeEvent(input$reopenButton2, {
     showModal(myModal)
   })
@@ -672,10 +667,10 @@ server <- function(input, output) {
           title = 'Identified Topics in Prison',
           margin = mrg,
           showlegend = FALSE,
-          height = 3600,  # Set a fixed height
-          margin = mrg,  # Adjust margins for better display
-          autosize = FALSE,  # Disable auto-sizing
-          config = list(scrollZoom = FALSE),  # Disable auto-sizing
+          height = 3600,
+          margin = mrg,  
+          autosize = TRUE,  
+          config = list(scrollZoom = TRUE),
           hoverlabel = list(font = list(color = '#000'))
           )
       
@@ -708,10 +703,10 @@ server <- function(input, output) {
           yaxis = list(title = "", categoryorder = "total ascending"),
           title = paste("Identified Topics Banned in", stateName, "Prisons"),
           showlegend = FALSE,
-          height = height,  # Set a fixed height
-          margin = mrg, # Adjust margins for better display
-          autosize = FALSE,  # Disable auto-sizing
-          config = list(scrollZoom = FALSE)  # Disable auto-sizing
+          height = height,  
+          margin = mrg, 
+          autosize = TRUE,  
+          config = list(scrollZoom = TRUE)
         )
       
     }
