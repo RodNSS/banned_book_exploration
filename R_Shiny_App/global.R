@@ -333,7 +333,9 @@ myModal <- modalDialog(
           tags$h5(
             HTML("Disclaimer:<br>"),
             tags$p(
-              "Due to the nature of the project, there will be some degree of error in this analysis. The topic model is only as good as the                   data that it's fed. Sometimes the wrong book description is grabbed, which can affect the results. I've tried to ensure that                    most are correct, but due to the large number of titles, it's a very tedious process."
+              "Due to the nature of the project, there will be some degree of error in this analysis. The topic model is only 
+              as good as the data that it's fed. Sometimes the wrong book description is grabbed, which can affect the results. 
+              I've tried to ensure that most are correct, but due to the large number of titles, it's a very tedious process."
             ),
             style = "color:white"
           )
