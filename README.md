@@ -16,7 +16,7 @@ This project utilizes the Google Books API to grab book descriptions. Sometimes 
 
 This project uses [BERTopic] for topic modeling. I've chosen to leave the topics in their raw output form as given by the model so the topics given may not be as accurate as a human labeling them all one by one. A lot of books consist of several topics so when you see "love_school_life_friends" as the top topic banned in schools and think "Well that doesn't sound like a topic that would be banned!" it's  because the model is skewed towards term frequency and may not pick up on subtle sub themes from the book description. With that said, I think the model still gives an overall generally good representation of the content by comparing the results with [PEN America's findings]. I ran several models and finally settled on the ones I thought gave the most accurate and coherent descriptions. While the topics banned in schools were somewhat predictable, some of the prison topics were quite surprising!
 
-Anyway, here is a link to the interactive [Banned Book Directory]. 
+Anyway, here is a link to the interactive [Banned Book Directory]. Just click each state on the map to view which books and topics are banned. 
 
 [Banned Book Directory]: https://roderick.shinyapps.io/Banned_Book_Directory/
 
