@@ -1,7 +1,8 @@
 # Exploring the Topics of Banned Books
 
 ![BANNED_BOOKS](https://github.com/RodNSS/banned_book_exploration/assets/92232804/004d293c-aaed-4dc1-99d7-e5a2120a0b12)
-Just show me the [app] already!
+
+## Just show me the [app] already!
 
 [app]: https://roderick.shinyapps.io/Banned_Book_Directory/
 
